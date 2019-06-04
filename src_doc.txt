@@ -1,0 +1,199 @@
+game{
+	world{
+		World{
+			一个World表示一个世界（存档）
+			高度为128
+			World由一些Chunk从左到右排列而成
+			最左端和最右端的边缘各有一个WorldGenerator
+			带有一个方块检查队列
+		}
+		Chunk{
+			一个Chunk表示一个宽32高128的区域
+			由WorldGenerator连续运行32次得到
+			保存着方块，非生物实体，生物
+		}
+		WorldGenerator{
+			每运行一次生成世界的一列，保存了世界的边界信息
+		}
+	}
+	block{
+		Block{
+			方块
+		}
+		StoneType extends Block{
+			破坏速率正比于工具的镐值
+		}
+		LiquidType extends Block{
+			能流动，只能用桶破坏
+		}
+		DirtType extends Block{
+			土类
+			默认受重力影响
+			破坏速率正比于工具的铲值
+		}
+		WoodenType extends Block{
+			默认可燃
+			破坏速率正比于工具的斧值
+		}
+		PlantType extends WoodenType{
+			植物类
+			能响应光照事件
+			有光照值和土壤值
+		}
+		StoneBlock extends StoneType{
+			石头方块
+			四周被挡住时显示为石头
+		}
+		AirBlock extends Block{
+			空气方块
+			一个实例可以被多个方块共用
+		}
+		CircuitBlock extends Block{
+			包装过的方块，与包装前方块特性基本相同
+			用于StaticBlock和电路
+		}
+		StaticBlock extends CircuitBlock{
+			静态方块
+			一个实例可以被多个方块共用
+			在响应事件时会自动解包装成为普通方块（onUpdate时会先调用updateCond判断是否需要响应事件）
+		}
+	}
+	item{
+		Item{
+			物品
+		}
+		BlockItem extends Item{
+			把方块包装成物品
+		}
+		Tool extends Item{
+			工具
+			不可叠加，有耐久值
+		}
+		EnergyTool extends Tool{
+			能量工具，可以放EnergyCell
+		}
+		EnergyCell extends Item{
+			能量单元，有能量值
+		}
+		Armor extends Tool{
+			护甲
+		}
+		Craft{
+			工艺方案
+			保存工艺的输入，输出，CraftInfo
+		}
+		CraftInfo{
+			一个Craft除了消耗物品之外的要求
+			主要是时间，耗能，工艺条件
+		}
+		ItemContainer{
+			物品容器接口
+			需要支持插入物品和转为数组两个操作
+		}
+		SingleItem implements ItemContainer{
+			单个物品容器
+			Item必须存在于SingleItem中
+		}
+		SpecialItem<T extends Item> extends SingleItem{
+			只能放T类和它的子类的物品
+		}
+		ItemList implements ItemContainer{
+			物品列表，由多个SingleItem构成
+			插入时依次调用每个SingleItem的插入
+		}
+		SelectableItemList extends ItemList{
+			可以选中一项的物品列表，主要用于玩家的随身物品
+		}
+	}
+	entity{
+		Entity{
+			实体
+		}
+		Agent extends Entity{
+			生物
+		}
+		Human extends Agent{
+			人类
+		}
+		Player extends Human{
+			玩家
+		}
+		DroppedItem extends Entity{
+			掉落物品，内含一个SingleItem
+		}
+	}
+	ui{
+		Action{
+			保存玩家操作
+		}
+		UI{
+			控件
+		}
+		UI_Group extends UI{
+			控件组
+		}
+		UI_MultiPage extends UI{
+			多页视图
+		}
+		UI_ItemList extends UI_Group{
+			物品列表
+		}
+	}
+	socket{
+		Server{
+			服务端，等待用户连接，每连接成功一次就启动一个ServerThread
+		}
+		Clinet{
+			客户端
+		}
+		ServerThread{
+			处理与一个客户端的通信
+		}
+	}
+}
+graphics{
+	Canvas{
+		将绘图过程序列化到字节数组
+		暂不支持某些复杂的绘图方式，但一般情况够用
+	}
+	MyCanvas{
+		将Canvas的输出反序列化并调用系统的绘图
+	}
+}
+
+游戏主流程：
+
+GameView每隔33ms调用World.update并更新画面
+
+World.update{
+	随机更新方块{
+		随机onUpdate
+		随机光照
+	}
+	更新实体{
+		调用玩家的update时{
+			应用玩家操作
+			ui响应玩家部分操作
+		}
+	}
+	随机打乱方块检查队列，按顺序调用onCheck
+	读取玩家操作
+	生成玩家的绘制指令
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
