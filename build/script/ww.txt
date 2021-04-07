@@ -1,0 +1,15 @@
+for(i:=0,i<20,i+=1,(
+pl:=World.cur.getRootPlayer(),
+x:=pl.x+util.MathUtil.rnd(0.0,120.0),
+y:=util.MathUtil.rnd(90.0,120.0),
+z:=ZombieRobot(x,y),
+as:=WoodenAirship(),
+as.ec.insert(InfiniteEnergyCell.full():Item),
+as.af1.insert(WoodenAirshipFlank():Item),
+as.af2.insert(WoodenAirshipFlank():Item),
+as.drop(x,y),
+
+PlantEssence().drop(x,y,1),
+
+z.add()
+))

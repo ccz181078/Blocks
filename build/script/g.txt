@@ -1,0 +1,6 @@
+NearbyInfo.BW=40,
+pl:=World.cur.getRootPlayer(),
+pl.creative_mode=false,
+x:=pl.x,
+y:=pl.y,
+WoodenBlock().drop(x,y,99)

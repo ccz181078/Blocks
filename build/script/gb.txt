@@ -1,0 +1,10 @@
+pl:=World.cur.getRootPlayer(),
+for(i:=0,i<1000,i+=1,(
+x:=pl.x+util.MathUtil.rnd(-120.0,120.0),
+y:=pl.y+util.MathUtil.rnd(30.0,40.0),
+z:=game.entity.GreenGuidedBullet(game.item.GreenGuidedBullet()),
+z.x=x,
+z.y=y,
+z.source=pl,
+z.add()
+))

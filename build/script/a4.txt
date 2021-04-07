@@ -1,0 +1,16 @@
+pl:=World.cur.getRootPlayer(),
+pl.creative_mode=false,
+for(i:=0,i<1,i+=1,(
+x:=pl.x+util.MathUtil.rnd(-120.0,120.0),
+y:=pl.y+util.MathUtil.rnd(30.0,40.0),
+z:=ZombieRobot(x,y),
+as:=Shilka(),
+as.ec.insert(InfiniteEnergyCell.full():Item),
+as.gun.insert(FlakGun():Item),
+as.drop(x,y),
+
+game.item.FlakBullet().drop(x,y,1880),
+BloodEssence().drop(x,y,10),
+
+z.add()
+))

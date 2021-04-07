@@ -1,0 +1,1 @@
+java -jar blocks.jar -Xss16384k

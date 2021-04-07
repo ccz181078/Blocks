@@ -1,1 +1,14 @@
-bin/*
+*.class
+*.dat
+*.jar
+*.stackdump
+nul
+android
+build/data/
+log.txt
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+*.zip

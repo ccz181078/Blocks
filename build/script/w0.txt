@@ -1,0 +1,16 @@
+NearbyInfo.BW=80,
+for(i:=0,i<20,i+=1,(
+pl:=World.cur.getRootPlayer(),
+pl.creative_mode=false,
+x:=pl.x+util.MathUtil.rnd(0.0,120.0),
+y:=pl.y+util.MathUtil.rnd(30.0,50.0),
+z:=ZombieRobot(x,y),
+as:=IronAirship(),
+as.ec.insert(InfiniteEnergyCell.full():Item),
+as.af1.insert(IronAirshipFlank():Item),
+as.af2.insert(IronAirshipFlank():Item),
+as.drop(x,y),
+PlantEssence().drop(x,y,99),
+
+z.add()
+))

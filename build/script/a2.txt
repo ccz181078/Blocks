@@ -1,0 +1,14 @@
+pl:=World.cur.getRootPlayer(),
+pl.creative_mode=false,
+x:=pl.x+util.MathUtil.rnd(-60.0,-20.0),
+y:=pl.y+util.MathUtil.rnd(30.0,50.0),
+z:=ZombieRobot(x,y),
+as:=Tank(),
+as.ec.insert(InfiniteEnergyCell.full():Item),
+as.drop(x,y),
+
+game.item.Tank_HEATFS().drop(x,y,256),
+game.item.Tank_APFSDS().drop(x,y,256),
+PlantEssence().drop(x,y,99),
+
+z.add()

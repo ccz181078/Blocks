@@ -1,0 +1,5 @@
+NearbyInfo.BW=40,
+pl:=World.cur.getRootPlayer(),
+x:=pl.x,
+y:=pl.y,
+ExplosiveBlock().drop(x,y,99)

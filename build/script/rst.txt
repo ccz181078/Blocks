@@ -1,0 +1,2 @@
+World.UPDATE_CNT=1
+com.ccz.blocks.Main.MS_PER_FRAME=33

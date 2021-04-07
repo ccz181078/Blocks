@@ -1,0 +1,1 @@
+NearbyInfo.BW=Integer.valueOf((#0):String)

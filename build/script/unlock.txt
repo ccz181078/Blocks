@@ -1,0 +1,4 @@
+pl:=World.cur.getRootPlayer(),
+pl.locked=false
+pl.x=-20
+pl.y=30

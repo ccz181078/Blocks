@@ -1,0 +1,4 @@
+gs:=World.cur.getRootPlayer().game_setting
+gs.light_in_suspend_mode=false
+//for(i:=-6000,i<3000,i+=1,World.cur.set(i:int,127:int,BedRockBlock():Block))
+//for(i:=0,i<3000,i+=32,World.cur.addChunkL())

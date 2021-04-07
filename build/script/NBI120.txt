@@ -1,0 +1,1 @@
+NearbyInfo.BW=120
