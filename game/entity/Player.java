@@ -147,13 +147,18 @@ public class Player extends Human{
 				else openDialog(new UI_Craft(Craft.getAll(0),-7));
 			}
 		});
-		ui.addChild(new UI_Button(-3,6){
+		ui.addChild(new UI_Button(-3,0){
 			protected BmpRes getBmp(){return pick_btn[pickup_state];}
 			protected void onPress(){
 				pickup_state=(pickup_state+1)%3;
 			}
 		});
-		ui.addChild(new UI_Button(-3,5){
+		ui.addChild(new UI_Button(-3, 1){
+			protected BmpRes getBmp(){return Item.talk_btn;}
+			@Override
+			protected void onPress() { return; }
+		});
+		ui.addChild(new UI_Button(-3,6){
 			long t0;
 			protected BmpRes getBmp(){return throw_btn;}
 			protected void onPress(){
@@ -165,15 +170,15 @@ public class Player extends Human{
 				getControlledAgent().throwCarriedItem(batch_op,t);
 			}
 		});
-		ui.addChild(new UI_Button(-3,4){
+		ui.addChild(new UI_Button(-3,5){
 			protected BmpRes getBmp(){
 				Agent a=getControlledAgent();
 				if(a!=Player.this&&dialog==null)a=Player.this;
-				if(a instanceof Human){
-					Item w=((Human)a).getCarriedItem().get();
-					if(w!=null)return w.getUseBmp();
-					return Item.talk_btn;
-				}
+//				if(a instanceof Human){
+//					Item w=((Human)a).getCarriedItem().get();
+//					if(w!=null)return w.getUseBmp();
+//					return Item.talk_btn;
+//				}
 				return Item.empty_btn;
 			}
 			protected void onPress(){
@@ -182,11 +187,11 @@ public class Player extends Human{
 				if(a instanceof Human)((Human)a).useCarriedItem();
 			}
 		});
-		ui.addChild(new UI_Button(-3,3){
+		ui.addChild(new UI_Button(-3,4){
 			protected BmpRes getBmp(){return batch_btn[batch_op?1:0];}
 			protected void onPress(){batch_op=!batch_op;}
 		});
-		ui.addChild(new UI_Button(-3,2){
+		ui.addChild(new UI_Button(-3,3){
 			protected BmpRes getBmp(){return suspend_btn[suspend_mode?1:0];}
 			public boolean exist(){return creative_mode;}
 			protected void onPress(){suspend_mode=!suspend_mode;}
