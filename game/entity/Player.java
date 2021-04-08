@@ -2,14 +2,19 @@ package game.entity;
 
 import static java.lang.Math.*;
 import static util.MathUtil.*;
+
+import com.ccz.blocks.MainActivity;
 import game.item.*;
 import game.ui.*;
+import game.ui.Action;
 import game.world.World;
 import game.world.ECPvPMode;
 import graphics.Canvas;
 import util.BmpRes;
 import game.world.Weather;
 import game.block.*;
+
+import javax.swing.*;
 
 public class Player extends Human{
 	private static final long serialVersionUID=1844677L;
@@ -156,7 +161,11 @@ public class Player extends Human{
 		ui.addChild(new UI_Button(-3, 1){
 			protected BmpRes getBmp(){return Item.talk_btn;}
 			@Override
-			protected void onPress() { return; }
+			protected void onPress() {
+				String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
+//				String msg = JOptionPane.showInputDialog("发送消息");
+				MainActivity._this.action.sendText(msg);
+			}
 		});
 		ui.addChild(new UI_Button(-3,6){
 			long t0;
@@ -174,11 +183,11 @@ public class Player extends Human{
 			protected BmpRes getBmp(){
 				Agent a=getControlledAgent();
 				if(a!=Player.this&&dialog==null)a=Player.this;
-//				if(a instanceof Human){
-//					Item w=((Human)a).getCarriedItem().get();
-//					if(w!=null)return w.getUseBmp();
+				if(a instanceof Human){
+					Item w=((Human)a).getCarriedItem().get();
+					if(w!=null)return w.getUseBmp();
 //					return Item.talk_btn;
-//				}
+				}
 				return Item.empty_btn;
 			}
 			protected void onPress(){
