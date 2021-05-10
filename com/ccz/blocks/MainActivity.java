@@ -11,6 +11,8 @@ import util.BmpRes;
 import game.GlobalSetting;
 import game.socket.Client;
 
+import javax.swing.*;
+
 public class MainActivity extends JFrame implements MouseMotionListener,MouseListener,KeyListener{
 	public static void main(String args[]){
 		debug.Log.init();
@@ -85,7 +87,14 @@ public class MainActivity extends JFrame implements MouseMotionListener,MouseLis
 	}
 	
 	public static void sendText(){
-		
+		new Thread(()->{
+			try{
+				String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
+				if(msg!=null){
+					MainActivity._this.runOnUiThread(()->MainActivity._this.action.sendText(msg));
+				}
+			}catch(Exception e){}
+		}).start();
 	}
 	
 	public static void showText(String text){
@@ -145,27 +154,27 @@ public class MainActivity extends JFrame implements MouseMotionListener,MouseLis
 				break;
 
 			case KeyEvent.VK_Q:
-			action.onTouch(W-H*5/16,H*9/16,0,1);
+			action.onKey('Q');
 			break;
 			
 			case KeyEvent.VK_E:
-			action.onTouch(W-H*5/16,H*11/16,0,1);
+			action.onKey('E');
 			break;
 			
 			case KeyEvent.VK_Z:
-			action.onTouch(W-H*5/16,H*15/16,0,1);
+			action.onKey('Z');
 			break;
 			
 			case KeyEvent.VK_X:
-			action.onTouch(W-H*5/16,H*13/16,0,1);
+			action.onKey('X');
 			break;
 			
 			case KeyEvent.VK_C:
-			action.onTouch(W-H*5/16,H*7/16,0,1);
+			action.onKey('C');
 			break;
 			
 			case KeyEvent.VK_V:
-			action.onTouch(W-H*5/16,H*5/16,0,1);
+			action.onKey('V');
 			break;
 			
 			case KeyEvent.VK_1:

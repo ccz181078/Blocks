@@ -86,6 +86,11 @@ private static final long serialVersionUID=1844677L;
 		agent.ydir=(u?1:0)-(d?1:0);
 		final float C=BW*Math.min(1,(height*2f)/width);
 		for(MotionEvent m:mes){
+			if(m instanceof KeyEvent){
+				char c=((KeyEvent)m).c;
+				UI.pl.onKey(c);
+				continue;
+			}
 			if(m instanceof TextEvent){
 				String s=UI.pl.name+": "+((TextEvent)m).s;
 				for(Player p:World.cur.getPlayers()){
@@ -134,6 +139,9 @@ private static final long serialVersionUID=1844677L;
 //		if(on&&World.cur.time-last_press_time>12)target.setDes(f2i(target.x+tx),f2i(target.y+ty));
 //		else target.cancelDes();
 	}
+	public void onKey(char key){
+		mes.add(new KeyEvent(key));
+	}
 	public void onTouch(float x,float y,int type){
 		//Log.i("onTouch  "+x+","+y+":"+type);
 		mes.add(new MotionEvent(x,y,type));
@@ -144,6 +152,13 @@ private static final long serialVersionUID=1844677L;
 	}
 	public void sendText(String text){
 		mes.add(new TextEvent(text));
+	}
+}
+class KeyEvent extends MotionEvent{
+	char c;
+	KeyEvent(char _c){
+		super(0,0,-2);
+		c=_c;
 	}
 }
 class TextEvent extends MotionEvent{

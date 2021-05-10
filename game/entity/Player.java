@@ -14,8 +14,6 @@ import util.BmpRes;
 import game.world.Weather;
 import game.block.*;
 
-import javax.swing.*;
-
 public class Player extends Human{
 	private static final long serialVersionUID=1844677L;
 	private double rs_x,rs_y,dead_x,dead_y;
@@ -120,6 +118,40 @@ public class Player extends Human{
 		batch_btn[]=BmpRes.load("UI/batch_",2),
 		suspend_btn[]=BmpRes.load("UI/suspend_",2);
 		
+	public void onKey(char c){
+		switch(c){
+			case 'Q':{
+				Agent a=getControlledAgent();
+				if(a!=Player.this&&dialog==null)a=Player.this;
+				if(a instanceof Human)((Human)a).useCarriedItem();
+				return;
+			}
+			case 'E':{
+				getControlledAgent().throwCarriedItem(batch_op,0);
+				return;
+			}
+			case 'Z':{
+				if(closeDialog())return;
+				if(creative_mode)openDialog(new UI_CreativeMode());
+				else if(World.cur.getMode() instanceof game.world.PvPMode)openDialog(new UI_PvPMode());
+				else openDialog(new UI_Craft(Craft.getAll(0),-7));
+				return;
+			}
+			case 'X':{
+				pickup_state=(pickup_state+1)%3;
+				return;
+			}
+			case 'C':{
+				batch_op=!batch_op;
+				return;
+			}
+			case 'V':{
+				if(creative_mode)suspend_mode=!suspend_mode;
+				return;
+			}
+		}
+	}
+	
 	public void resetUI(){
 		closeDialog();
 		il=new UI_ItemList(-2,0,2,8,items,null);
@@ -146,25 +178,20 @@ public class Player extends Human{
 		ui.addChild(new UI_Button(-3,7){
 			protected BmpRes getBmp(){return dialog==null?work_btn:cancel_btn;}
 			protected void onPress(){
-				if(closeDialog())return;
-				if(creative_mode)openDialog(new UI_CreativeMode());
-				else if(World.cur.getMode() instanceof game.world.PvPMode)openDialog(new UI_PvPMode());
-				else openDialog(new UI_Craft(Craft.getAll(0),-7));
+				onKey('Z');
 			}
 		});
 		ui.addChild(new UI_Button(-3,0){
 			protected BmpRes getBmp(){return pick_btn[pickup_state];}
 			protected void onPress(){
-				pickup_state=(pickup_state+1)%3;
+				onKey('X');
 			}
 		});
-		ui.addChild(new UI_Button(-3, 1){
+		ui.addChild(new UI_Button(-3,1){
 			protected BmpRes getBmp(){return Item.talk_btn;}
 			@Override
 			protected void onPress() {
-				String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
-//				String msg = JOptionPane.showInputDialog("发送消息");
-				MainActivity._this.action.sendText(msg);
+				MainActivity.sendText();
 			}
 		});
 		ui.addChild(new UI_Button(-3,6){
@@ -186,24 +213,21 @@ public class Player extends Human{
 				if(a instanceof Human){
 					Item w=((Human)a).getCarriedItem().get();
 					if(w!=null)return w.getUseBmp();
-//					return Item.talk_btn;
 				}
 				return Item.empty_btn;
 			}
 			protected void onPress(){
-				Agent a=getControlledAgent();
-				if(a!=Player.this&&dialog==null)a=Player.this;
-				if(a instanceof Human)((Human)a).useCarriedItem();
+				onKey('Q');
 			}
 		});
 		ui.addChild(new UI_Button(-3,4){
 			protected BmpRes getBmp(){return batch_btn[batch_op?1:0];}
-			protected void onPress(){batch_op=!batch_op;}
+			protected void onPress(){onKey('C');}
 		});
 		ui.addChild(new UI_Button(-3,3){
 			protected BmpRes getBmp(){return suspend_btn[suspend_mode?1:0];}
 			public boolean exist(){return creative_mode;}
-			protected void onPress(){suspend_mode=!suspend_mode;}
+			protected void onPress(){onKey('V');}
 		});
 		info=new UI_Info(this);
 		action=new Action(1,1);
