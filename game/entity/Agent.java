@@ -309,12 +309,20 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	public final void throwCarriedItem(boolean all,long time){
 		SingleItem s,s0=getCarriedItem();
 		if(s0==null)return;
-		if(all){
+		if(time > 30) {
+			s = s0.pop();
+		} else if(all) {
+			s = new SingleItem();
+			s.insert(s0);
+		} else {
+			s = s0.pop();
+		}
+/*		if(all){
 			s=new SingleItem();
 			s.insert(s0);
-		}else s=s0.pop();
+		}else s=s0.pop();*/
 		if(!s.isEmpty()){
-			if(!all&&time>30){
+			if(/*!all&&*/time>30){
 				double k=min(0.3,time*0.005);
 				throwEnt(new ThrowedItem(x,y,s.get()),rnd_gaussion()*0.1,rnd(k*k,(k+0.1)*(k+0.1))*0.1);
 			}else{

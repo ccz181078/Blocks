@@ -139,7 +139,11 @@ public class MainActivity extends JFrame implements MouseMotionListener,MouseLis
 			case KeyEvent.VK_S:
 			action.d=true;
 			break;
-			
+
+			case KeyEvent.VK_SPACE:
+				action.u = true;
+				break;
+
 			case KeyEvent.VK_Q:
 			action.onTouch(W-H*5/16,H*9/16,0,1);
 			break;
@@ -216,7 +220,11 @@ public class MainActivity extends JFrame implements MouseMotionListener,MouseLis
 			case KeyEvent.VK_S:
 			action.d=false;
 			break;
-			
+
+			case KeyEvent.VK_SPACE:
+				action.u = false;
+				break;
+
 			case KeyEvent.VK_1:
 			case KeyEvent.VK_2:
 			case KeyEvent.VK_3:

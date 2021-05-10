@@ -2,14 +2,19 @@ package game.entity;
 
 import static java.lang.Math.*;
 import static util.MathUtil.*;
+
+import com.ccz.blocks.MainActivity;
 import game.item.*;
 import game.ui.*;
+import game.ui.Action;
 import game.world.World;
 import game.world.ECPvPMode;
 import graphics.Canvas;
 import util.BmpRes;
 import game.world.Weather;
 import game.block.*;
+
+import javax.swing.*;
 
 public class Player extends Human{
 	private static final long serialVersionUID=1844677L;
@@ -147,13 +152,22 @@ public class Player extends Human{
 				else openDialog(new UI_Craft(Craft.getAll(0),-7));
 			}
 		});
-		ui.addChild(new UI_Button(-3,6){
+		ui.addChild(new UI_Button(-3,0){
 			protected BmpRes getBmp(){return pick_btn[pickup_state];}
 			protected void onPress(){
 				pickup_state=(pickup_state+1)%3;
 			}
 		});
-		ui.addChild(new UI_Button(-3,5){
+		ui.addChild(new UI_Button(-3, 1){
+			protected BmpRes getBmp(){return Item.talk_btn;}
+			@Override
+			protected void onPress() {
+				String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
+//				String msg = JOptionPane.showInputDialog("发送消息");
+				MainActivity._this.action.sendText(msg);
+			}
+		});
+		ui.addChild(new UI_Button(-3,6){
 			long t0;
 			protected BmpRes getBmp(){return throw_btn;}
 			protected void onPress(){
@@ -165,14 +179,14 @@ public class Player extends Human{
 				getControlledAgent().throwCarriedItem(batch_op,t);
 			}
 		});
-		ui.addChild(new UI_Button(-3,4){
+		ui.addChild(new UI_Button(-3,5){
 			protected BmpRes getBmp(){
 				Agent a=getControlledAgent();
 				if(a!=Player.this&&dialog==null)a=Player.this;
 				if(a instanceof Human){
 					Item w=((Human)a).getCarriedItem().get();
 					if(w!=null)return w.getUseBmp();
-					return Item.talk_btn;
+//					return Item.talk_btn;
 				}
 				return Item.empty_btn;
 			}
@@ -182,11 +196,11 @@ public class Player extends Human{
 				if(a instanceof Human)((Human)a).useCarriedItem();
 			}
 		});
-		ui.addChild(new UI_Button(-3,3){
+		ui.addChild(new UI_Button(-3,4){
 			protected BmpRes getBmp(){return batch_btn[batch_op?1:0];}
 			protected void onPress(){batch_op=!batch_op;}
 		});
-		ui.addChild(new UI_Button(-3,2){
+		ui.addChild(new UI_Button(-3,3){
 			protected BmpRes getBmp(){return suspend_btn[suspend_mode?1:0];}
 			public boolean exist(){return creative_mode;}
 			protected void onPress(){suspend_mode=!suspend_mode;}
