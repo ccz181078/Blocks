@@ -3,7 +3,6 @@ package game.entity;
 import static java.lang.Math.*;
 import static util.MathUtil.*;
 
-import com.ccz.blocks.MainActivity;
 import game.item.*;
 import game.ui.*;
 import game.ui.Action;
@@ -188,10 +187,19 @@ public class Player extends Human{
 			}
 		});
 		ui.addChild(new UI_Button(-3,1){
+			boolean pressed=false;
 			protected BmpRes getBmp(){return Item.talk_btn;}
 			@Override
 			protected void onPress() {
-				MainActivity.sendText();
+				pressed=true;
+			}
+			@Override
+			protected void onDraw(Canvas cv){
+				if(pressed){
+					pressed=false;
+					cv.sendText();
+				}
+				super.onDraw(cv);
 			}
 		});
 		ui.addChild(new UI_Button(-3,6){

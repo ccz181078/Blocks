@@ -86,15 +86,24 @@ public class MainActivity extends JFrame implements MouseMotionListener,MouseLis
 		Client.cur.connect();
 	}
 	
+	boolean send_text_flag=false;
+	
 	public static void sendText(){
-		new Thread(()->{
-			try{
-				String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
-				if(msg!=null){
-					MainActivity._this.runOnUiThread(()->MainActivity._this.action.sendText(msg));
-				}
-			}catch(Exception e){}
-		}).start();
+		try{
+			if(MainActivity._this.send_text_flag)return;
+			MainActivity._this.send_text_flag=true;
+			new Thread(()->{
+				try{
+					String msg = JOptionPane.showInputDialog(MainActivity._this.game_view, "输入消息", "发送消息",JOptionPane.PLAIN_MESSAGE);
+					if(msg!=null){
+						MainActivity._this.runOnUiThread(()->{
+							MainActivity._this.action.sendText(msg);
+							MainActivity._this.send_text_flag=false;
+						});
+					}
+				}catch(Exception e){}
+			}).start();
+		}catch(Exception e){}
 	}
 	
 	public static void showText(String text){
