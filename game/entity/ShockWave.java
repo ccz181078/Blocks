@@ -12,15 +12,21 @@ public class ShockWave extends Ball{
 	public ShockWave(){
 		hp=10;
 	}
+	public boolean isPureEnergy(){return true;}
 	public double mass(){return 0.1;}
 	public double hardness(){return game.entity.NormalAttacker.HD;}
 	double _fc(){return 3e-3;}
 	@Override
 	public double RPG_ExplodeProb(){return 0;}
+	boolean chk_ent=false;
 	@Override
-	public boolean chkEnt(){return true;}
+	public boolean chkEnt(){return chk_ent;}
 	void touchEnt(Entity a){
-		if(hp<=0||a.hp<=0||(a instanceof Spark)||(a instanceof ShockWave))return;
+		if(a instanceof ShockWave){
+			if(rnd()<0.3)chk_ent=false;
+			return;
+		}
+		if(hp<=0||a.hp<=0||(a instanceof Spark))return;
 		a.onAttacked(hp*hp/50.,this,this);
 		a.onAttackedByEnergy(hp*hp/50.,this);
 		a.xa+=(xv*1.0-a.xv)*0.5/max(1,a.mass());
@@ -55,6 +61,7 @@ public class ShockWave extends Ball{
 	@Override
 	public void update(){
 		super.update();
+		if(rnd()<0.1)chk_ent=true;
 		double v=min(1,hypot(xv,yv)*(sqrt(hp/10)))*0.2+hp*hp*1e-5;
 		hp-=0.04/(hypot(xv,yv)+0.01);
 		if(rnd()<v)new Smoke().initPos(x,y,xv,yv,null).add();

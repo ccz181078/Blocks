@@ -55,10 +55,6 @@ class WoodenBullet extends WeakBullet{
 		if(a instanceof FireAttack)a.val*=10;
 		return a;
 	}
-	public void onKill(double x,double y,game.entity.Bullet ent){
-		super.onKill(x,y,ent);
-		if(rnd()<0.8)new WoodenBullet().drop(x,y);
-	}
 }
 class StoneBullet extends WeakBullet{
 	static BmpRes bmp=new BmpRes("Item/StoneBullet");
@@ -74,20 +70,10 @@ class QuartzBullet extends WeakBullet{
 	public double attackValue(){return 40;}
 	public double hardness(){return game.entity.NormalAttacker.QUARTZ;}
 }
-class GoldBullet extends WeakBullet{
-	static BmpRes bmp=new BmpRes("Item/GoldBullet");
-	public BmpRes getBmp(){return bmp;}
-	public double attackValue(){return 40;}
-	public double mass(){return 0.2;}
-	public double hardness(){return game.entity.NormalAttacker.GOLD;}
-	public void onKill(double x,double y,game.entity.Bullet ent){
-		super.onKill(x,y,ent);
-		new GoldBullet().drop(x,y);
-	}
-}
 class DiamondBullet extends WeakBullet{
 	static BmpRes bmp=new BmpRes("Item/DiamondBullet");
 	public BmpRes getBmp(){return bmp;}
+	public double _fc(){return 2e-3;}
 	public double attackValue(){return 80;}
 	public double hardness(){return game.entity.NormalAttacker.DIAMOND;}
 	public void onKill(double x,double y,game.entity.Bullet ent){

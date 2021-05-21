@@ -13,7 +13,10 @@ private static final long serialVersionUID=1844677L;
 	}
 	@Override
 	public boolean autoUse(Human h,Agent a){
-		if(h.distL2(a)<3)return false;
+		double d=3;
+		if(h.armor.get() instanceof EnergyStoneArmor)d=1;
+		else if(h.armor.get()!=null)d=2;
+		if(h.distL2(a)<d)return false;
 		return super.autoUse(h,a);
 	}
 };

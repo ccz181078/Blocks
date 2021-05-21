@@ -13,9 +13,7 @@ public class EnergyShotgun extends EnergyGun{
 	static BmpRes bmp=new BmpRes("Item/EnergyShotgun");
 	public BmpRes getBmp(){return bmp;}
 	public int maxDamage(){return 200;}
-	EnergyShotgun(){
-		bullet=new NonOverlapSpecialItem<Bullet>(Bullet.class,32);
-	}
+	EnergyShotgun(){}
 	public int energyCost(){return 4;}
 	double mv2(){return super.mv2()*rnd(0.2,0.3);}
 	@Override

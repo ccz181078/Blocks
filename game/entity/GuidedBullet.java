@@ -41,6 +41,7 @@ public class GuidedBullet extends Bullet{
 		double xvs=xv,yvs=yv,s=1;
 		double xds=xv+rnd_gaussion()*0.1,yds=yv+rnd_gaussion()*0.1;
 		for(Entity e:ni.ents){
+			if(e.harmless())continue;
 			double xd=x-e.x,yd=y-e.y,d=1/(hypot(xd,yd)+1e-2);
 			if(d<1/4.)continue;
 			if(e instanceof GuidedBullet){

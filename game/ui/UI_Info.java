@@ -54,9 +54,10 @@ public class UI_Info extends UI{
 			float sz=Math.min(GlobalSetting.getGameSetting().text_size,0.7f);
 			cv.drawText("$"+StatResult.getPriceString(pl.money)+"/$"+StatResult.getPriceString(pl.getPrice(mode.getStat())),sz*15f,1.2f,sz,1);
 		}
+		float sz=Math.min(GlobalSetting.getGameSetting().text_size,0.7f);
+		cv.drawText(((int)pl.hp)+"/"+(int)pl.maxHp(),1f,0.3f,sz,0);
 		if(World.cur.getMode() instanceof ECPvPMode){
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
-			float sz=Math.min(GlobalSetting.getGameSetting().text_size,0.7f);
 			cv.drawText("剩余"+mode.restPlayerCount()+"人,你击杀了"+pl.kill_cnt+"人",sz*20f,1.2f,sz,1);
 			cv.save();
 			cv.translate(2.1f,0.7f);

@@ -49,8 +49,12 @@ public class ECPvPMode extends GameMode{
 			if(tool instanceof TeleportationStick)k=10;
 			tool.damage=max(0,tool.maxDamage()-f2i(1+rnd_exp(k)));
 			if(tool instanceof TeleportationSquare)tool.damage=0;
+			if(tool instanceof Bucket)tool.damage=0;
 		}
-		if(it instanceof game.item.Bottle)cnt+=f2i(rnd_exp(10));
+		if(it instanceof game.item.Bottle){
+			if(it instanceof game.item.PureEnergyBottle||it instanceof game.item.BloodBottle)cnt+=f2i(rnd_exp(3));
+			else cnt+=f2i(rnd_exp(12));
+		}
 		if(it.foodVal()>0)cnt+=f2i(rnd_exp(2));
 		if(it instanceof game.item.Cube && rnd()>0.2)return;
 		if(it instanceof game.item.Arrow)cnt+=f2i(rnd_exp(4));
@@ -59,7 +63,10 @@ public class ECPvPMode extends GameMode{
 				return;
 			}
 			if(it instanceof game.item.SpecialBullet||it instanceof game.item.FireBullet||it instanceof game.item.FlakBullet||it instanceof game.item.PathBullet||it instanceof game.item.GuidedBullet){
-				cnt+=f2i(rnd_exp(2));
+				cnt+=f2i(rnd_exp(4));
+			}
+			else if(it instanceof game.item.APDSBullet){
+				cnt+=f2i(rnd_exp(16));
 			}
 			else{
 				cnt+=f2i(rnd_exp(32));
@@ -68,6 +75,7 @@ public class ECPvPMode extends GameMode{
 		}
 		if(it instanceof game.item.StoneBall){
 			if(it instanceof game.item.HeatBall&&rnd()>0.3)return;
+			if(it instanceof game.item.DarkIronBall&&rnd()>0.1)return;
 			cnt+=f2i(rnd_exp(1));
 		}
 		if(it instanceof game.item.RPGItem){
@@ -143,8 +151,8 @@ public class ECPvPMode extends GameMode{
 		nxt_l=cur_l+d*rnd(0.3);
 		nxt_r=nxt_l+d*0.7;
 	}
-	public static int HALF_WORLD_WIDTH=300,NUM_ZOMBIE=29,BUILDING_NUM=20,DROP_CNT=400;
-	public static double V0=0.05;//0.067;
+	public static int HALF_WORLD_WIDTH=900,NUM_ZOMBIE=49,BUILDING_NUM=30,DROP_CNT=500;
+	public static double V0=0.06;//0.067;
 	void newWorld(World world){
 		cur_l=-HALF_WORLD_WIDTH;
 		cur_r=HALF_WORLD_WIDTH;
@@ -330,7 +338,7 @@ public class ECPvPMode extends GameMode{
 				finished=true;
 				cur_l=-HALF_WORLD_WIDTH;
 				cur_r=HALF_WORLD_WIDTH;
-				World.showText("大吉大利，今天吃鸡，游戏结束！");
+				World.showText("游戏结束！");
 			}
 			if(!finished){
 				if(rest_drop>0){
@@ -339,7 +347,7 @@ public class ECPvPMode extends GameMode{
 					if(rnd()<0.5)drop(Craft._normal_tool,x,127);
 					else drop(Craft._throwable_item,x,127);
 				}
-				if(rnd()<0.01)new ItemSlot().drop(rnd(cur_l,cur_r),127);
+				//if(rnd()<0.01)new ItemSlot().drop(rnd(cur_l,cur_r),127);
 				if(rnd()<0.002)new PlantEssence().drop(rnd(cur_l,cur_r),127);
 				if(wait>0)--wait;
 				else{
@@ -451,7 +459,7 @@ public class ECPvPMode extends GameMode{
 	}
 	public void onPlayerDead(Player player){
 		onHumanDead(player);
-		player.respawn_time=150;
+		player.respawn_time=300;
 		player.locked=true;
 		dead_pls.add(player);
 	}

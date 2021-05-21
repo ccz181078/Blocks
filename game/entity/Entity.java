@@ -20,9 +20,14 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	public transient double xdep,ydep,xa,ya,aa,xv0,yv0;//acceleration
 	public transient double xf,yf,f,left,top,right,bottom,V,ax,ay;
 	public transient double xfl,yfl,xfs,yfs,fs,fs2,fc;
-	public transient double inblock,anti_g;
+	public transient double inblock,anti_g,last_g;
 	public transient boolean in_wall,climbable,shadowed;
 	public transient java.util.ArrayList<Pose> history_pose;
+	public boolean isPureEnergy(){return false;}
+	public static class FriendGroup implements Serializable{
+		
+	}
+	public FriendGroup friend_group;
 	//public double hardness(){return game.entity.NormalAttacker.AGENT;}
 	public static class Pose implements Cloneable{
 		public double x,y;
@@ -330,7 +335,8 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 				}
 			}
 		}
-		if(!in_wall&&!climbable)ya-=gA()*max(0,1-anti_g);
+		if(!in_wall&&!climbable)ya-=last_g=gA()*max(0,1-anti_g);
+		else last_g=0;
 		apply_v();
 		if(xfl>0){
 			double y0=(yv>0?top:bottom);
@@ -362,7 +368,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			yv*=k;
 		}
 		
-		final double max_v=1,max_v_val=1e5;
+		final double max_v=1,max_v_val=1e10;
 		double abs_v=sqrt(xv*xv+yv*yv);
 		if(abs_v>max_v_val){
 			double v_scale=max_v_val/abs_v;
@@ -486,9 +492,16 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	}
 	void touchBlock(int x,int y,Block b){}//事件：接触方块
 	final boolean hitTest(Entity ent){//碰撞检测
-		return active()&&ent.active()&&
+		if(active()&&ent.active()&&
 			abs(x-ent.x)<=width()+ent.width()&&
-			abs(y-ent.y)<=height()+ent.height();
+			abs(y-ent.y)<=height()+ent.height()){
+			if(friend_group!=null&&friend_group==ent.friend_group){
+				if(this instanceof Agent&&ent instanceof Agent)return true;
+				return false;
+			}
+			return true;
+		}
+		return false;
 	}
 	public double touchVal(){return 1;}
 	void touchEnt(Entity ent,boolean chk_ent){
@@ -694,8 +707,12 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		double t=min(max(0,tx),max(0,ty));
 		x+=xv*t;y+=yv*t;
 		
+		Source launcher=src.getLaunchSrc();
+		if(launcher instanceof Agent&&!harmless()){
+			friend_group=((Agent)launcher).friend_group;
+		}
 		double src_v=max(1,hypot(src.xv,src.yv));
-		initPos(x+src.xv/src_v,y+src.yv/src_v,xv,yv,SourceTool.make(src.getLaunchSrc(),"发射的"));
+		initPos(x+src.xv/src_v,y+src.yv/src_v,xv,yv,SourceTool.make(launcher,"发射的"));
 		if(!is_test)src.impulse(this,-1);
 		initAddVel(src.xv,src.yv);
 		if(is_test)last_launched_ent=this;
@@ -704,8 +721,11 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	public double xmov(){return 0;}
 	public double ymov(){return 0;}
 	public static double predictHit(Entity w,Entity target){
-		if(w==null||target==null)return 1e10;
-		target=new SimEntity(target);
+		return predictHit(w,target,null);
+	}
+	public static double predictHit(Entity w,Entity target0,NearbyInfo ni){
+		if(w==null||target0==null)return 1e10;
+		Entity target=new SimEntity(target0);
 		double x=target.x,y=target.y;
 		double W=w.width()+target.width();
 		double H=w.height()+target.height();
@@ -714,14 +734,28 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		double md=1e10;
 		//Line.begin();
 		for(int i=0;i<400;++i){
-			md=min(md,max(abs(w.x-target.x)-W,abs(w.y-target.y)-H));
+			double d=max(abs(w.x-target.x)-W,abs(w.y-target.y)-H);
+			if(ni!=null){
+				if(ni.hitTest(w)){
+					for(Entity e:ni.ents){
+						if(hypot(e.xv,e.yv)>0.2)continue;
+						if(w.hitTest(e))return md;
+					}
+					for(Entity e:ni.agents){
+						if(hypot(e.xv,e.yv)>0.2)continue;
+						if(e==target0)continue;
+						if(w.hitTest(e))return md;
+					}
+				}
+			}
+			md=min(md,d);
 			if(w instanceof Bullet && hypot(w.xv,w.yv)<0.4)break;
 			if(hypot(w.xv,w.yv)<1e-2&&hypot(target.xv,target.yv)<1e-2)break;
 			w.test_update();
 			w.test_step();
 			target.test_update();
 			target.test_step();
-			//Line.gen(w,0xff00ff00);
+			if(ni!=null&&World.cur.setting.predict_hit_tip)Line.gen(w,0xff0000ff);
 			//Line.gen(target,0xffff0000);
 		}
 		//Line.end(true);
@@ -734,7 +768,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		for(int i=0;i<200;++i){
 			w.test_update();
 			w.test_step();
-			if(i%4==0)Line.gen(w,0xff00ff00);
+			Line.gen(w,0xff00ff00);
 		}
 		Line.end(true);
 	}
@@ -773,8 +807,8 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		}
 		xv+=xa;yv+=ya;av+=aa;
 		upd_v();
-		double v=max(1,hypot(xv,yv));
-		x+=xv/v;y+=yv/v;a+=av;
+		double v_scale=1/sqrt(1+xv*xv+yv*yv);
+		x+=xv*v_scale;y+=yv*v_scale;a+=av;
 	}
 	protected boolean useRandomWalk(){return true;}
 }
@@ -793,7 +827,8 @@ class SimEntity extends Entity{
 		
 		w=e.width();h=e.height();
 		if(e instanceof Human && ((Human)e).armor.get() instanceof game.item.Airship&&e.anti_g>0.99)w+=2;
-		g=e.gA()*(1-min(1,e.anti_g));
-		if(e.ydep<0||e.in_wall||e.climbable)g=0;
+		g=e.last_g;
+		//g=e.gA()*(1-min(1,e.anti_g));
+		//if(e.ydep<0||e.in_wall||e.climbable)g=0;
 	}
 }

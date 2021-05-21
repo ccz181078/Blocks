@@ -28,10 +28,10 @@ public class EnergyCell extends Item implements EnergyContainer{
 	public int maxEnergy(){return 200;}
 	
 	public int resCap(){return maxEnergy()-energy;}
-	public void gainEnergy(int v){energy+=v;}
+	public void gainEnergy(int v){energy+=max(0,min(resCap(),v));}
 	
 	public int getEnergy(){return energy;}
-	public void loseEnergy(int v){energy-=v;}
+	public void loseEnergy(int v){energy-=max(0,min(energy,v));}
 	public void setEnergy(int x){
 		energy=max(0,min(maxEnergy(),x));
 	}

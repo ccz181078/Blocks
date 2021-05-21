@@ -22,9 +22,9 @@ public class NearbyInfo implements java.io.Serializable{
 	public int xl,yl;//最左下的方块坐标
 	public double mx,my,xd,yd;//矩形中心和半长半宽
 	public Player pl=null;//需要被绘制ui的玩家
-	public static float BW=12;//屏幕高度相当于BW个方块
+	public float BW=12;//屏幕高度相当于BW个方块
 	
-	boolean hitTest(Entity e){
+	public boolean hitTest(Entity e){
 		return
 			e.active()&&
 			abs(mx-e.x)<=xd+e.width()&&
@@ -148,6 +148,7 @@ public class NearbyInfo implements java.io.Serializable{
 		}
 		
 		cv.save();
+		cv.scale(12/BW,12/BW);
 		cv.rotate(pl.getRotation());
 
 		cv.drawColor(World.cur.sky_color);

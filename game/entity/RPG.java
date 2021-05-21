@@ -41,7 +41,7 @@ private static final long serialVersionUID=1844677L;
 	public void update(){
 		super.update();
 		hp-=0.01;
-		Line.gen(this);
+		//Line.gen(this);
 		if(fuel>0){
 			if(genSmoke())new Smoke().initPos(x-ax*0.2,y-ay*0.2,-ax*0.5,-ay*0.5,null).setHpScale(this instanceof RPG_Guided?1.5:1).add();
 			--fuel;
@@ -93,7 +93,7 @@ private static final long serialVersionUID=1844677L;
 	/*public void onAttacked(Attack att){
 		try_explode();
 	}*/
-	public double gA(){return !World.cur.get(x,y).isCoverable()?0.005:fuel>0?0.003:0.01;}
+	public double gA(){return fuel>0?0.003:0.01;}
 	public boolean rotByVelDir(){return true;}
 	@Override
 	public void draw(graphics.Canvas cv){

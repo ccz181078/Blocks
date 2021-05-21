@@ -11,6 +11,7 @@ public class BloodBall extends Ball{
 	public double width(){return 0.1;}
 	public double height(){return 0.1;}
 	public double mass(){return 0.2;}
+	public boolean chkEnt(){return false;}
 	public double hardness(){return game.entity.NormalAttacker.POWDER;}
 	
 	@Override
@@ -60,9 +61,6 @@ public class BloodBall extends Ball{
 		super.update();
 		hp+=0.02;
 		if(rnd()<0.02)src=null;
-	}
-	void touchEnt(Entity ent){
-		if(ent.getClass()!=getClass())super.touchEnt(ent);
 	}
 	void touchAgent(Agent a){
 		if(a==src)return;

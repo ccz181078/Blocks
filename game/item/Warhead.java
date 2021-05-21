@@ -18,6 +18,9 @@ public abstract class Warhead extends Item implements BallProvider{
 		double v0=sqrt(1+slope*slope),xv=dir/v0,yv=dir*slope/v0;
 		explode(x+xv/2,y+yv/2,xv,yv,a.getLaunchSrc(),a);
 	}
+	public void onExplode(Entity pos,double tx,double ty,Source src){
+		explode(pos.x,pos.y,pos.xv,pos.yv,src,null);
+	}
 	public void explode(double x,double y,double xv,double yv,Source src,Agent a){
 		game.entity.RPG e=((game.entity.RPG)getRPG().initPos(x,y,xv,yv,SourceTool.make(src,"引爆的")));
 		e.is_warhead=true;

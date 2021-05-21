@@ -25,7 +25,7 @@ public class EnergyBoxingGlove extends EnergyTool{
 				Item w=h.getCarriedItem().popItem();
 				if(w!=null){
 					Entity t=new ThrowedItem(0,0,w);
-					t.initPos(h.x+h.dir*(h.width()+0.3),h.y,e.xv+e.xa+rnd_gaussion()*0.1,e.yv+e.ya+rnd_gaussion()*0.1,SourceTool.make(src,"从"+h.getName()+"手中击飞的"));
+					t.initPos(h.x+h.dir*(h.width()+0.3),h.y,e.xv+e.xa+rnd_gaussion()*0.04,e.yv+e.ya+rnd_gaussion()*0.4,SourceTool.make(src,"从"+h.getName()+"手中击飞的"));
 					t.add();
 				}
 			}
@@ -47,6 +47,16 @@ public class EnergyBoxingGlove extends EnergyTool{
 	@Override
 	public void onCarried(Agent a){
 		if(cd>0)--cd;
+	}
+	@Override
+	public boolean autoUse(Human h,Agent a){
+		if(abs(h.x+h.dir*(h.width()+0.3)-a.x)<0.3&&abs(h.y-a.y)<0.3){
+			if(cd<=0&&findEnergyCell(h,5)){
+				h.attack();
+				return true;
+			}
+		}else if(cd>0)return true;
+		return false;
 	}
 	@Override
 	public void onUpdate(ThrowedItem ent){

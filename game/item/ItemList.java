@@ -26,6 +26,15 @@ public class ItemList implements java.io.Serializable,ShowableItemContainer{
 			}
 		}
 	}
+	public boolean lock(){
+		for(int i=si.length-1;i>=0;--i){
+			if(!(si[i] instanceof LockedItem)){
+				si[i]=new LockedItem(si[i]);
+				return true;
+			}
+		}
+		return false;
+	}
 	public void unlock(int cnt){
 		for(int i=0;i<cnt;++i)unlock();
 	}

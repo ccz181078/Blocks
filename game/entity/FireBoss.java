@@ -24,7 +24,7 @@ public class FireBoss extends NormalAgent{
 	public FireBoss(double _x,double _y){
 		super(_x,_y);
 	}
-	public Entity getBall(){return new HE_FireBall();}
+	public Entity getBall(){return new HE_FireBall().setHpScale(2);}
 	public boolean chkRemove(long t){return false;}
 	public AttackFilter getAttackFilter(){return fire_filter;}
 
@@ -54,7 +54,6 @@ public class FireBoss extends NormalAgent{
 				throwEntFromCenter(new FireBall(),x+cos(r),y+sin(r),0.2);
 			}
 		}
-		if(rnd()<0.8)return;
 		double md=1e10;
 		Agent tg=null;
 		Enemy e=es[rndi(0,es.length-1)];
@@ -72,16 +71,15 @@ public class FireBoss extends NormalAgent{
 		
 		switch (attackMode){
 			case 0:
-				double n=rnd(-hp/4-200,14);
+				double n=rnd(-hp/40-20,14);
 				attackMode=n<0?0: n<5?1: n<9?2: 3;
 				return;
 			case 1://落火球
 				if(World.cur.getGroundY(f2i(tg.x))<tg.y+15){
 					for(int i=0;i<4;++i){
 						FireBall f=new FireBall();
-						f.x=tg.x-2+rnd(5);
-						f.y=min(128,tg.y+15)-rnd(5);
-						f.yv=-0.2;
+						f.initPos(tg.x+rnd_gaussion()*2,min(128,tg.y+15)-rnd(5),0,-0.3,this);
+						f.setHpScale(3);
 						f.add();
 					}
 				}
@@ -89,8 +87,8 @@ public class FireBoss extends NormalAgent{
 				return;
 			case 2:{//扫射
 				double r=Math.toRadians(attackTime*12-45);
-				throwEntFromCenter(new FireBall(),x+cos(r)*dir,y+sin(r),0.2);
-				throwEntFromCenter(new FireBall(),x-cos(r)*dir,y-sin(r),0.2);}
+				throwEntFromCenter(new FireBall().setHpScale(2),x+cos(r)*dir,y+sin(r),0.2);
+				throwEntFromCenter(new FireBall().setHpScale(2),x-cos(r)*dir,y-sin(r),0.2);}
 				++attackTime;
 				if(attackTime>15){
 					attackTime=0;
@@ -99,10 +97,9 @@ public class FireBoss extends NormalAgent{
 				return;
 			case 3://散布火球
 				for(int i=0;i<=5;++i){
-					FireBall f=new FireBall();
-					f.x=tg.x+rnd(-10,10);
-					f.y=tg.y+rnd(-5,5);
-					f.hp=rnd(4,8);
+					FireBall f=new HT_FireBall();
+					f.setHpScale(4);
+					f.initPos(tg.x+rnd_gaussion()*2,tg.y+rnd_gaussion()*2,0,0,this);
 					if(!World.cur.get(f.x,f.y).isSolid())f.add();
 				}
 				attackMode=0;

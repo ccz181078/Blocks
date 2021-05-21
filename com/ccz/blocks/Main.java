@@ -9,7 +9,7 @@ import game.socket.Client;
 
 public class Main{
 	static final UpdateThread ut=new UpdateThread();
-	static int MS_PER_FRAME=33;
+	public static int MS_PER_FRAME=33;
 	static volatile boolean exited=false;
 	public static void help(){
 		System.out.println(util.AssetLoader.loadString(Main.class,"help"));
@@ -47,13 +47,13 @@ public class Main{
 			else if(s.equals("replay")){
 				final String name=sc.next();
 				ut.run(new Runnable(){public void run(){ut.replay(name);}});
-			}else if(s.equals("record")){
+			}/*else if(s.equals("record")){
 				final String name=sc.next();
 				ut.run(new Runnable(){public void run(){ut.startRecord(name);}});
 			}else if(s.equals("recordall")){
 				final String name=sc.next();
 				ut.run(new Runnable(){public void run(){ut.startRecordAll(name);}});
-			}else if(s.equals("w")||s.equals("save"))ut.run(new Runnable(){public void run(){ut.saveGame();}});
+			}*/else if(s.equals("w")||s.equals("save"))ut.run(new Runnable(){public void run(){ut.saveGame();}});
 			else if(s.equals("ren")){
 				final String name=sc.next();
 				ut.run(new Runnable(){public void run(){ut.saveGame(name);}});
@@ -291,6 +291,7 @@ class UpdateThread extends Thread{
 			else if(mode.equals("test"))config.mode=World.Mode.TEST;
 			else if(mode.equals("p"))config.mode=World.Mode.PVP;
 			else if(mode.equals("e"))config.mode=World.Mode.ECPVP;
+			else if(mode.equals("level"))config.mode=World.Mode.LEVEL;
 			else throw new Exception();
 
 			     if(terrain.equals("n"))config.terrain=World.Terrain.NORMAL;
@@ -311,6 +312,9 @@ class UpdateThread extends Thread{
 		}
 	}
 	boolean client_on=false;
+	String getDatetimeString(){
+		return new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+	}
 	public void startGame(String ip,String port,String un,String pw){
 		if(started){
 			stopGame();
@@ -322,6 +326,7 @@ class UpdateThread extends Thread{
 			Client.cur.connect();
 			started=true;
 			client_on=true;
+			startRecord("record_"+un+"_"+ip+"_"+port+"_"+getDatetimeString());
 			while(started&&client_on&&!exited&&MainActivity._this!=null){
 				handleTasks();
 				try{sleep(50);}catch(Exception e){return;}
@@ -343,13 +348,17 @@ class UpdateThread extends Thread{
 			started=true;
 			log("开始游戏");
 			new game.socket.Server().start();
+			startRecordAll("record_"+getDatetimeString());
 			while(started&&!exited){
+				if(World.cur.time%(30*60)==0){
+					saveGame();
+				}
 				long t=System.currentTimeMillis();
 				World.cur.update();
 				local_world_running=true;
 				handleTasks();
 				local_world_running=false;
-				try{sleep(Math.max(5,Main.MS_PER_FRAME-(System.currentTimeMillis()-t)));}catch(Exception e){return;}
+				try{sleep(Math.max(0,Main.MS_PER_FRAME-(System.currentTimeMillis()-t)));}catch(Exception e){return;}
 			}
 		}catch(Exception e){
 			log(e);
@@ -363,6 +372,7 @@ class UpdateThread extends Thread{
 			stopGame();
 			if(started)return;
 		}
+		MainActivity.replaying=true;
 		try{
 			if(MainActivity._this==null){
 				new MainActivity();
@@ -386,6 +396,7 @@ class UpdateThread extends Thread{
 		}catch(Exception e){
 			log(e);
 		}
+		MainActivity.replaying=false;
 		replaying=false;
 		started=false;
 		log("播放结束");

@@ -42,8 +42,7 @@ public class AutoCraftBlock extends CraftHelperBlock implements BlockWithUI{
 		ui.addPage(new EnergyCell(),new UI_ItemList(ec,UI.pl.il));
 		return ui.setBlock(ba);
 	}
-	public boolean onUpdate(final int x,final int y){
-		if(super.onUpdate(x,y))return true;
+	protected void checkStartTask(final int x,final int y){
 		if(ch.free()){
 			if(task!=null&&World.cur.get(x,y-1).getCraftType()!=0){
 				task.start(new Crafter(){
@@ -74,6 +73,10 @@ public class AutoCraftBlock extends CraftHelperBlock implements BlockWithUI{
 				});
 			}
 		}
+	}
+	public boolean onUpdate(final int x,final int y){
+		if(super.onUpdate(x,y))return true;
+		checkStartTask(x,y);
 		return false;
 	}
 	

@@ -9,10 +9,10 @@ import game.entity.Agent;
 import game.item.SingleItem;
 import util.*;
 import debug.Log;
-import static game.world.NearbyInfo.BW;
 
 public class Action implements java.io.Serializable{
 private static final long serialVersionUID=1844677L;
+private static final int C1=1024;
 	public boolean l,r,u,d;
 	public int width,height;
 	public int item_sel_group=0,item_sel_index=0;
@@ -84,7 +84,7 @@ private static final long serialVersionUID=1844677L;
 		Agent agent=target.getControlledAgent();
 		agent.xdir=(r?1:0)-(l?1:0);
 		agent.ydir=(u?1:0)-(d?1:0);
-		final float C=BW*Math.min(1,(height*2f)/width);
+		final float C=World.cur.setting.BW*Math.min(1,(height*2f)/width);
 		for(MotionEvent m:mes){
 			if(m instanceof KeyEvent){
 				char c=((KeyEvent)m).c;
@@ -98,10 +98,10 @@ private static final long serialVersionUID=1844677L;
 				}
 				continue;
 			}
-			if(m.tp>=3){
+			if(m.tp>=C1){
 				tx=(m.x-width/2)/(height/C);
 				ty=(height/2-m.y)/(height/C);
-				if(m.tp==3){
+				if(m.tp==C1){
 					double rot=target.getRotation()*PI/180;
 					double tx0=tx,ty0=ty,c=cos(rot),s=sin(rot);
 					tx=(float)(tx0*c+ty0*s);
@@ -148,7 +148,7 @@ private static final long serialVersionUID=1844677L;
 	}
 	public void onTouch(float x,float y,int type,int is_left_click){
 		if(is_left_click!=0)onTouch(x,y,type);
-		else onTouch(x,y,type+3);
+		else onTouch(x,y,type+C1);
 	}
 	public void sendText(String text){
 		mes.add(new TextEvent(text));

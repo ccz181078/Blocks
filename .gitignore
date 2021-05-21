@@ -5,6 +5,7 @@
 nul
 android
 build/data/
+build/classes/assets/doc.txt
 log.txt
 
 Thumbs.db

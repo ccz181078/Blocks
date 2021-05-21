@@ -16,9 +16,11 @@ public abstract class Armor extends DefendTool{
 	public boolean onArmorClick(Human a,double tx,double ty){return false;}//穿戴时被用于点击
 	public boolean onArmorLongPress(Human a,double tx,double ty){return false;}//穿戴时被用于长按
 	
-	public double mass(){return 0;}
+	public double mass(){return 0.5;}
 	public double width(){return 0.29;}
 	public double height(){return 0.95;}
+	public double maxvr(){return 1;}
+	public double frictionXr(){return 1;}
 	
 	public float getRotation(){return 0;}
 	public Attack transform(Attack a){

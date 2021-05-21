@@ -27,7 +27,8 @@ public final class FocusedEnergy extends Ball{
 	@Override
 	void touchEnt(Entity e){
 		if(hp<=0||e.hp<=0||e.getClass()==FocusedEnergy.class)return;
-		e.onAttackedByEnergy(hp*0.4,this);
+		e.onAttackedByEnergy(hp*0.2,this);
+		e.onAttacked(hp*0.2,this);
 		hp*=0.9;
 	}
 	@Override

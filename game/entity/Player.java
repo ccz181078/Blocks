@@ -24,7 +24,6 @@ public class Player extends Human{
 	transient public UI_ItemList il;
 	transient private UI_Group ui;
 	transient private UI_Info info;
-	transient public boolean send_text=false;
 	transient private UI dialog=null;
 	transient public UI last_pressed_ui=null;
 	transient public game.GameSetting game_setting=null;
@@ -108,7 +107,7 @@ public class Player extends Human{
 	}
 	
 
-	private static BmpRes
+	public static BmpRes
 		bag_btn=new BmpRes("UI/bag"),
 		cancel_btn=new BmpRes("UI/cancel"),
 		work_btn=new BmpRes("UI/work"),
@@ -241,14 +240,6 @@ public class Player extends Human{
 		action=new Action(1,1);
 		last_pressed_ui=null;
 	}
-	@Override
-	public void useCarriedItem(){
-		Item it=items.popItem();
-		if(it!=null)it.onUse(Player.this);
-		else{
-			send_text=true;
-		}
-	}
 
 	
 	public boolean check(BlockAt ba){
@@ -282,15 +273,13 @@ public class Player extends Human{
 	}
 	public void drawLeftUI(Canvas cv){
 		info.draw(cv);
-		if(send_text){
-			cv.sendText();
-			send_text=false;
-		}
 	}
 	public void setCursorState(boolean on,float tx,float ty,long press_time){
 		action.on=on;
 		action.tx=tx;
 		action.ty=ty;
+		Item cur=getCarriedItem().get();
+		if(cur!=null)cur.setCursorState(this,on,x+tx,y+ty,press_time);
 		if(on&&press_time>12)setDes(x+tx,y+ty);
 		else cancelDes();
 	}

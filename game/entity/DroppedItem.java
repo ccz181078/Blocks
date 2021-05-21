@@ -21,8 +21,16 @@ public final class DroppedItem extends Entity{
 		y=_y+rnd(-0.01,0.01);
 		xv=rnd(-0.05,0.05);
 		yv=rnd(-0.05,0.05);
-		item.insert(_item);
 		hp=10+rnd_exp(5);
+		if(_item.get() instanceof game.item.LevelEnd){
+			Player pl=World.cur.getRootPlayer();
+			if(!pl.creative_mode){
+				double xd=pl.x-_x,yd=pl.y-_y,d=hypot(xd,yd)+1e-8;
+				new LevelEnd().initPos(_x,_y,xd/d*0.1,yd/d*0.1,null).add();
+				return;
+			}
+		}
+		item.insert(_item);
 	}
 	
 	
@@ -38,7 +46,12 @@ public final class DroppedItem extends Entity{
 	@Override
 	public boolean harmless(){return true;}
 	@Override
-	public boolean chkEnt(){return false;}//是否与Entity接触
+	public boolean chkEnt(){return false;}
+	
+	void chkBlock(int x,int y,Block b){
+		b.touchEnt(x,y,this);
+		touchBlock(x,y,b);
+	}
 	
 	public static void dropItems(SingleItem si[],double _x,double _y){
 		if(si!=null)

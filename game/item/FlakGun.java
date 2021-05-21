@@ -67,13 +67,13 @@ public class FlakGun extends Pipeline_5{
 		double x=hu.x+1.6*cos(a)-0.15*(cnt-3)*sin(a),y=hu.y+0.15*(cnt-3)*cos(a)+1.6*sin(a)+0.23 , t = 0;
 		if( ammo instanceof Warhead ) t = 0.4;
 		
-		/*if( !( ammo instanceof PathBullet ) )
+		if( !( ammo instanceof PathBullet ) && !( ammo instanceof GuidedBullet ) )
 		{
 			Spark s=new Spark(0,0);
 			s.initPos(x+0.25*cos(a),y+0.25*sin(a),cos(a)*0.5+hu.xv,sin(a)*0.5+hu.yv,hu);
 			s.hp*=0.3;
 			s.add();
-		}*/
+		}
 		
 		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x+t*cos(a),y+t*sin(a),b,mv2());
 		ec.loseEnergy(energyCost());

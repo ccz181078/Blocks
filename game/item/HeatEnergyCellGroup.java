@@ -24,7 +24,7 @@ public class HeatEnergyCellGroup extends EnergyCell{
 			if(damage>=8)return null;
 		}
 		HeatEnergyCellGroup ec=(HeatEnergyCellGroup)clone();
-		ec.setEnergy(getEnergy()+rndi(1,9));
+		ec.setEnergy(getEnergy()+1);
 		return ec;
 	}
 };

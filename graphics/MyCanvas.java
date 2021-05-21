@@ -254,12 +254,25 @@ public class MyCanvas{
 			case 69:{
 				int yn=0xff&(int)rB(),xn=0xff&(int)rB();
 				float x0=rF(),y0=rF();
+				cv.save();
+				cv.translate(x0,y0);
+				int[][] v=new int[yn][xn];
 				for(int i=0;i<yn*xn;++i){
 					int x=i%xn,y=i/xn,col=((int)rB())<<24;
-					default_paint.setColor(col);
-					cv.drawRect(x+x0,y+y0,(x+1)+x0,(y+1)+y0,default_paint);
+					v[y][x]=col;
 				}
-				default_paint.setAlpha(255);
+				Bitmap bmp=BitmapFactory.decodeMatrix(v);
+				drawBmp(bmp,0,0,xn,yn);
+				/*for(int i=0;i<yn*xn;++i){
+					int x=i%xn,y=i/xn,col=((int)rB())<<24;
+					default_paint.setColor(col);
+					cv.save();
+					cv.translate(x,y);
+					cv.drawRect(0,0,1,1,default_paint);
+					cv.restore();
+				}
+				default_paint.setAlpha(255);*/
+				cv.restore();
 				break;
 			}
 			default:

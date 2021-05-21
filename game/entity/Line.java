@@ -16,7 +16,7 @@ public class Line extends NonInteractiveEnt{
 		x0=(float)ent.xv;
 		y0=(float)ent.yv;
 		color=col;
-		hp=rnd_exp(1000);
+		hp=60;//rnd_exp(1000);
 	}
 	private Line(double x1,double y1,double xd,double yd,int col){
 		x=x1;
@@ -26,7 +26,7 @@ public class Line extends NonInteractiveEnt{
 		color=col;
 		hp=5;
 	}
-	@Override public void add(){}
+	//@Override public void add(){}
 	public static void gen(double x,double y,double d){
 		new Line(x,y-d,0,2*d,0xffff0000).add();
 		new Line(x-d,y,2*d,0,0xffff0000).add();
@@ -38,7 +38,7 @@ public class Line extends NonInteractiveEnt{
 		Line w=new Line(ent,col);
 		if(is_test)ls.add(w);
 		else w.add();
-		if(col!=0xff0000ff)w.hp=3;
+		if(col!=0xff0000ff)w.hp=1;
 	}
 	public static void begin(){
 		is_test=true;

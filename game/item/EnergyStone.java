@@ -19,6 +19,9 @@ private static final long serialVersionUID=1844677L;
 		return super.clickAt(x,y,a);
 	}
 	
+	public void onExplode(Entity pos,double tx,double ty,int amount,Source src){
+		pos.explode(50,()->new game.entity.EnergyBall().setHpScale(amount),false);
+	}
 	@Override
 	game.entity.Entity getBall(){return new game.entity.EnergyBall().setHpScale(35);}
 };

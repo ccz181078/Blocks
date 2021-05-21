@@ -10,6 +10,7 @@ public class Spark extends Entity{
 
 	static BmpRes bmp[]=BmpRes.load("Entity/Spark_",8);
 	
+	public boolean isPureEnergy(){return true;}
 	public double hardness(){return game.entity.NormalAttacker.POWDER;}
 	
 	double _fc(){return 1e-4;}
@@ -81,7 +82,10 @@ public class Spark extends Entity{
 	void touchEnt(Entity ent,boolean chk_ent){
 		if(ent instanceof ShockWave)return;
 		if(ent instanceof Spark){
-			if(distL2(ent)<0.2)if(((Spark)ent).t>t)shadowed=true;
+			if(distL2(ent)<0.2)if(((Spark)ent).t>t){
+				shadowed=true;
+				this.chk_ent=false;
+			}
 			return;
 		}
 		if(chk_ent)touchEnt(ent);
@@ -94,8 +98,8 @@ public class Spark extends Entity{
 		if(!b.isCoverable()&&b.fuelVal()==0)hp-=5;
 	}
 
-	public boolean chkEnt(){return true;}
-	
+	public boolean chkEnt(){return chk_ent;}
+	boolean chk_ent=false;
 	private transient boolean touched=false;
 	
 	@Override
@@ -120,6 +124,7 @@ public class Spark extends Entity{
 	@Override
 	public void update(){
 		super.update();
+		if(rnd()<0.1)chk_ent=true;
 		hp-=1;
 	}
 

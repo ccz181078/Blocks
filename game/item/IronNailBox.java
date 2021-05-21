@@ -42,13 +42,13 @@ public class IronNailBox extends Vehicle{
 		if(w.ydep!=0)w.xf+=f_;
 		
 		if(cd==0)
-		for(Entity e:World.cur.getNearby(w.x,w.y,width()+2,height()+2,false,true,false).ents){
+		for(Entity e:World.cur.getNearby(w.x,w.y,width()+3,height()+3,false,true,false).ents){
 			if(e.harmless())continue;
 			if(!hasEnergy(1))continue;
 			loseEnergy(rf2i(0.1));
-			double xd=abs(e.x-w.x)-width(),yd=abs(e.y-w.y)-height();
-			double cx=xd<0?0:e.mass()*(abs(e.xv)*0.2+0.1)/(1+xd*2);
-			double cy=yd<0?0:e.mass()*(abs(e.yv)*0.2+0.1)/(1+yd*2);
+			double xd=abs(e.x-w.x)-width()-e.width(),yd=abs(e.y-w.y)-height()-e.height();
+			double cx=xd<0?0:e.mass()*(abs(e.xv)*0.4+0.1)/(1+xd);
+			double cy=yd<0?0:e.mass()*(abs(e.yv)*0.4+0.1)/(1+yd);
 			int dx=e.x>w.x?1:-1,dy=e.y>w.y?1:-1;
 			e.impulse(dx,0,cx);
 			e.impulse(0,dy,cy);
@@ -85,12 +85,12 @@ public class IronNailBox extends Vehicle{
 		new Iron().drop(x,y,util.MathUtil.rndi(10,20));
 		Source src=SourceTool.item(w,this);
 		for(int i=0;i<80;++i){
-			new game.entity.Bullet(new game.item.IronNail()).initPos(x-0.5,y+rnd(-1,1),-rnd(0.2,0.8),rnd_gaussion()*0.2,src).add();
-			new game.entity.Bullet(new game.item.IronNail()).initPos(x+0.5,y+rnd(-1,1),+rnd(0.2,0.8),rnd_gaussion()*0.2,src).add();
+			new game.entity.Bullet(new game.item.IronNail()).initPos(x-0.5,y+rnd(-1,1),-rnd(0.2,1.5),rnd_gaussion()*0.2,src).add();
+			new game.entity.Bullet(new game.item.IronNail()).initPos(x+0.5,y+rnd(-1,1),+rnd(0.2,1.5),rnd_gaussion()*0.2,src).add();
 		}
 		for(int i=0;i<40;++i){
-			new game.entity.Bullet(new game.item.IronNail()).initPos(x+rnd(-0.5,0.5),y-1,rnd_gaussion()*0.2,-rnd(0.2,0.8),src).add();
-			new game.entity.Bullet(new game.item.IronNail()).initPos(x+rnd(-0.5,0.5),y+1,rnd_gaussion()*0.2,+rnd(0.2,0.8),src).add();
+			new game.entity.Bullet(new game.item.IronNail()).initPos(x+rnd(-0.5,0.5),y-1,rnd_gaussion()*0.2,-rnd(0.2,1.5),src).add();
+			new game.entity.Bullet(new game.item.IronNail()).initPos(x+rnd(-0.5,0.5),y+1,rnd_gaussion()*0.2,+rnd(0.2,1.5),src).add();
 		}
 		DroppedItem.dropItems(toArray(),x,y);
 		Fragment.gen(x,y,width(),height(),4,4,12,getArmorBmp());

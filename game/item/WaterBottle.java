@@ -4,6 +4,7 @@ import util.BmpRes;
 import static util.MathUtil.*;
 import game.block.*;
 import game.world.World;
+import game.entity.*;
 
 public class WaterBottle extends Bottle{
 	private static final long serialVersionUID=1844677L;
@@ -16,5 +17,13 @@ public class WaterBottle extends Bottle{
 				World.cur.setAir(b.x,b.y);
 			}
 		}
+	}
+	@Override
+	public boolean autoUse(Human h,Agent a){
+		if(World.cur.get(rnd(h.left,h.right),rnd(h.top,h.bottom)) instanceof game.block.FireBlock){
+			h.clickAt(h.x+h.xdir*(1+1e-4),h.y-1);
+			return true;
+		}
+		return false;
 	}
 }

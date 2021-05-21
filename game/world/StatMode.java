@@ -116,7 +116,7 @@ public class StatMode extends GameMode{
 			return 0.001;
 		}
 		public double getEnergyPrice(){
-			return 0.172/(30*2*4*5.0);
+			return 0.172/(30*2*4*1);
 			//cactus_Price / ((cacuts_fuelVal * fuelVal->furnaceTime * furnaceSlotNum * (energy gain per frame))
 		}
 		public double getPrice0(Item i){

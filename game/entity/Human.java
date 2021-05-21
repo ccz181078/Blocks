@@ -54,19 +54,24 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		return name;
 	}
 	
-	public double maxHp(){return 40;}
+	public double maxHp(){return 40+kill_cnt*(kill_cnt+10);}
 	public double maxXp(){return 100;}
 	public double mass(){
-		Armor ar=armor.get();
 		double m=1;
+		Armor ar=armor.get();
 		if(ar!=null)m+=ar.mass();
+		Shoes sh=shoes.get();
+		if(sh!=null)m+=sh.mass();
 		return m;
 	}
 	@Override
 	double frictionX(){
+		double v=1;
 		Shoes sh=shoes.get();
-		if(sh!=null)return sh.friction();
-		return 1;
+		if(sh!=null)v=sh.friction();
+		Armor ar=armor.get();
+		if(ar!=null)v*=ar.frictionXr();
+		return v;
 	}
 	public double width(){
 		Armor ar=armor.get();
@@ -267,9 +272,10 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		double v=super.getJumpAcc();
 		Shoes sh=shoes.get();
 		if(sh!=null)v=sh.getJumpAcc(this,v);
+		double v0=v;
 		Armor ar=armor.get();
 		if(ar!=null)v=ar.getJumpAcc(this,v);
-		return v;
+		return max(v0,v/mass());
 	}
 	@Override
 	public void update(){
@@ -541,6 +547,15 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 	private void readObject(ObjectInputStream in) throws IOException,ClassNotFoundException{ 
 		in.defaultReadObject();
 		if(shoes==null)shoes=new SpecialItem<Shoes>(Shoes.class);
+	}
+	@Override
+	public double maxv(){
+		double v=super.maxv();
+		Shoes sh=shoes.get();
+		if(sh!=null)v*=sh.maxvr();
+		Armor ar=armor.get();
+		if(ar!=null)v*=ar.maxvr();
+		return v;
 	}
 }
 

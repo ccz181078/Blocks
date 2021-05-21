@@ -20,7 +20,7 @@ public class RPG_Dark extends RPG{
 		rpg.drop(x,y);
 	}
 	public void explode(){
-		explode(75);
+		explode(100);
 		super.explode();
 	}
 	@Override

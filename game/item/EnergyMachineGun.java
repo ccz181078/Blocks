@@ -12,16 +12,14 @@ public class EnergyMachineGun extends EnergyGun{
 	static BmpRes bmp=new BmpRes("Item/EnergyMachineGun");
 	public BmpRes getBmp(){return bmp;}
 	public int maxDamage(){return 1000;}
-	public EnergyMachineGun(){
-		bullet=new NonOverlapSpecialItem<Bullet>(Bullet.class,50);
-	}
+	public EnergyMachineGun(){}
 	@Override
 	public Item clickAt(double x,double y,Agent w){
 		w.dir=(x-w.x>0?1:-1);
 		if(!ready())return this;
 		y-=w.y;
-		x-=w.x;
-		if(x*w.dir>w.width()&&shootCond()){
+		x-=w.x+w.dir*w.width();
+		if(x*w.dir>0&&shootCond()){
 			Bullet b=bullet.get();
 			shoot(y/x,w);
 			int cd=3;

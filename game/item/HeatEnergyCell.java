@@ -16,7 +16,7 @@ public class HeatEnergyCell extends EnergyCell{
 	public Item heatingProduct(boolean in_furnace){
 		if(!in_furnace||rnd()<0.00001)return null;
 		HeatEnergyCell ec=(HeatEnergyCell)clone();
-		ec.setEnergy(getEnergy()+rndi(1,9));
+		ec.setEnergy(getEnergy()+1);
 		return ec;
 	}
 };

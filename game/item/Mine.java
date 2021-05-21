@@ -40,7 +40,6 @@ public class Mine extends Item implements BlockItem{
 					h.clickAt(x,y);
 					h.selectItem(Warhead.class,true);
 					h.clickAt(x,y);
-					World.showText("Mine:"+x+","+y);
 					return true;
 				}
 			}

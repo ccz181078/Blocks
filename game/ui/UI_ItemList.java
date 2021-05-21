@@ -84,7 +84,7 @@ public class UI_ItemList extends UI_Group{
 					if(tp==1){
 						if(pl.last_pressed_ui instanceof UI_ItemList){
 							UI_ItemList ex=(UI_ItemList)pl.last_pressed_ui;
-							if(ex==this||getExItemList()==ex.il||duel_ui_il==ex){
+							if(ex==this||getExItemList()==ex.il||duel_ui_il==ex||pl.creative_mode){
 								if(ex==this&&w==drag_w){
 									il.onClick(pl,si[w],getExItemList());
 								}else if(il.dragable()&&ex.il.dragable()){

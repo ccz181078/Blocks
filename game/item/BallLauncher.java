@@ -16,6 +16,7 @@ private static final long serialVersionUID=1844677L;
 	}
 	public Entity getBall(){
 		StoneBall w=ball.popItem();
+		if(w==null)return null;
 		return w.toEnt();
 	}
 

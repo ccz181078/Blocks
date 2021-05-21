@@ -9,10 +9,11 @@ import game.block.Block;
 
 public class PureEnergyBall extends Ball{
 	private static final long serialVersionUID=1844677L;
-	public double mass(){return 0.01;}
+	public double mass(){return 0.01*(1+sqrt(max(1e-8,hp/10)));}
 	public double radius(){
 		return min(1,sqrt(max(1e-8,hp/10))*0.2);
 	}
+	public boolean isPureEnergy(){return true;}
 	public double hardness(){return game.entity.NormalAttacker.HD;}
 	public double fluidResistance(){return 0;}
 	public boolean chkEnt(){return false;}

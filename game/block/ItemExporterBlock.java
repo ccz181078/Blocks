@@ -14,8 +14,7 @@ public class ItemExporterBlock extends IronBasedType implements BlockWithUI{
 	public void onPlace(int x,int y){
 		it=new NonOverlapItem();
 	}
-	public boolean onUpdate(int x,int y){
-		if(super.onUpdate(x,y))return true;
+	private void checkExport(int x,int y){
 		Block b=World.cur.get(x,y+1).rootBlock();
 		SingleItem si[]=b.getItems();
 		Item i0=it.get();
@@ -23,9 +22,13 @@ public class ItemExporterBlock extends IronBasedType implements BlockWithUI{
 			Item i1=s.get();
 			if(i1!=null&&(i0==null||i0.cmpType(i1))){
 				s.popItem().drop(x+0.5,y);
-				return false;
+				return;
 			}
 		}
+	}
+	public boolean onUpdate(int x,int y){
+		if(super.onUpdate(x,y))return true;
+		checkExport(x,y);
 		return false;
 	}
 	public void onDestroy(int x,int y){

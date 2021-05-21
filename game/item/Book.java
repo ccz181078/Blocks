@@ -11,7 +11,7 @@ public class Book extends Item{
 	public void onAttack(Entity e,Source src){
 		if(e instanceof Human){
 			Human hu=(Human)e;
-			if(hu.name==null)hu.name="N"+rndi(0,9999);
+			if(hu.name==null)hu.name="wuy";//"N"+rndi(0,9999);
 		}
 	}
 }

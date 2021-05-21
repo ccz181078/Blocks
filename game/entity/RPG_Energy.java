@@ -20,7 +20,7 @@ public class RPG_Energy extends RPG{
 		rpg.drop(x,y);
 	}
 	public void explode(){
-		explode(150);
+		explode(100);
 		super.explode();
 	}
 	@Override

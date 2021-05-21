@@ -106,4 +106,7 @@ public abstract class GameMode implements java.io.Serializable{
 		player.dead=false;
 		ProtectionZone.setPlayer(player);
 	}
+	public void touchLevelEnd(LevelEnd e,Player pl){
+		e.kill();
+	}
 }

@@ -9,8 +9,6 @@ import game.item.*;
 import util.BmpRes;
 
 public class GreenGuidedBullet extends GuidedBullet{
-	public double width(){return 0.3;}
-	public double height(){return 0.3;}
 	public GreenGuidedBullet(game.item.GreenGuidedBullet b){
 		super(b);
 	}

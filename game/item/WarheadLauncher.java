@@ -35,6 +35,7 @@ private static final long serialVersionUID=1844677L;
 	}
 	public Entity getBall(){
 		if(!Entity.is_test)--cur_cnt;
+		if(cur==null)return null;
 		return cur.getBall();
 	}
 	@Override

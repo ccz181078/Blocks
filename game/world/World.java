@@ -42,6 +42,12 @@ public final class World implements Serializable{
 	private GameMode mode=null;
 	private transient CheckPoint checkpoint=null;
 	private transient boolean fast_forward=false;
+	public static class Setting implements Serializable{
+		public float BW=12;
+		public boolean shoot_trajectory_prediction=false;
+		public boolean predict_hit_tip=false;
+	};
+	public transient Setting setting=null;
 	static class OpLog implements Serializable{
 		long time;
 		Runnable runnable;
@@ -166,7 +172,7 @@ public final class World implements Serializable{
 	
 	//获取一个玩家能看到的附近区域
 	public NearbyInfo getNearby(Player pl){
-		double xd=(NearbyInfo.BW),yd=(NearbyInfo.BW/2);
+		double xd=(setting.BW),yd=(setting.BW/2);
 		if(pl.getRotation()!=0){
 			xd=yd=hypot(xd,yd)+1;
 		}
@@ -180,6 +186,14 @@ public final class World implements Serializable{
 		ni0.setPlayer(pl);
 		ni0.ents=ni.ents;
 		ni0.agents=ni.agents;
+		
+		/*boolean slow=false;
+		for(Agent a:ni0.agents){
+			if(a instanceof Zombie)slow=true;
+		}
+		if(slow)com.ccz.blocks.Main.MS_PER_FRAME=66;
+		else com.ccz.blocks.Main.MS_PER_FRAME=33;*/
+		
 		return ni0;
 	}
 	
@@ -187,6 +201,7 @@ public final class World implements Serializable{
 	public NearbyInfo getNearby(double mx,double my,double xd,double yd,boolean block,boolean ent,boolean agent){
 		NearbyInfo ni=new NearbyInfo();
 		ni.mx=mx;ni.my=my;ni.xd=xd;ni.yd=yd;
+		ni.BW=setting.BW;
 		if(block){
 			if(abs(mx)<1e6&&abs(my)<1e6&&abs(xd)<1e6&&abs(yd)<1e6){
 				int xl=(int)floor(mx-xd),xr=(int)floor(mx+xd);
@@ -240,6 +255,9 @@ public final class World implements Serializable{
 				break;
 			case ECPVP:
 				mode=new ECPvPMode();
+				break;
+			case LEVEL:
+				mode=new LevelMode();
 				break;
 		}
 		mode.enable_group_fall=true;
@@ -463,6 +481,7 @@ public final class World implements Serializable{
 			if(pi instanceof RemotePlayerInfo)pi.remove();
 			else pi.add();
 		}
+		setting=new Setting();
 	}
 	public void restart(){
 		cur=this;
@@ -856,7 +875,8 @@ public final class World implements Serializable{
 		STAT,
 		TEST,
 		PVP,
-		ECPVP
+		ECPVP,
+		LEVEL,
 	};
 	public enum Terrain{
 		NORMAL,

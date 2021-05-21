@@ -10,9 +10,7 @@ public class EnergyGun extends EnergyLauncher{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Item/EnergyGun");
 	SpecialItem<Bullet> bullet=new SpecialItem<Bullet>(Bullet.class);
-	public EnergyGun(){
-		bullet=new NonOverlapSpecialItem<Bullet>(Bullet.class,25);
-	}
+	public EnergyGun(){}
 	public BmpRes getBmp(){return bmp;}
 	public int maxDamage(){return 200;}
 	public int energyCost(){return 2;}
@@ -21,6 +19,7 @@ public class EnergyGun extends EnergyLauncher{
 	}
 	public Entity getBall(){
 		Bullet w=bullet.popItem();
+		if(w==null)return null;
 		return w.toEnt();
 	}
 

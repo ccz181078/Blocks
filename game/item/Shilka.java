@@ -52,6 +52,7 @@ public class Shilka extends Vehicle{
 	public double width(){return 0.95;}
 	public double height(){return 0.82;}
 	int walk = 0;
+	public double maxvr(){return walk==0?1:0;}
 	public boolean onArmorLongPress(Human hu,double tx,double ty){
 		if(!hasEnergy(5))return true;
 		double xd=tx-hu.x,yd=ty-(hu.y+0.23);
@@ -134,8 +135,9 @@ public class Shilka extends Vehicle{
 			}
 		}else{
 			//if(w.ydep!=0)w.xf+=0.6;
-			if(w.ydep!=0)w.xf+=2;
-			if(w.xdep!=0)w.yf+=2;
+			if(w.ydep!=0)w.xf+=5;
+			if(w.xdep!=0)w.yf+=5;
+			if(w.ydep<0)w.f+=5;
 		}
 	}
 	public double getJumpAcc(Human h,double v){return walk==0?v:0;}

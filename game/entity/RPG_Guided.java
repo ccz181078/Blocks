@@ -41,7 +41,7 @@ public class RPG_Guided extends RPG{
 		if(ent==target){
 			try_explode();
 		}else{
-			if(hp>200){
+			if(hp>200&&!( ent instanceof RPG_Guided )){
 				hp-=200;
 			}else{
 				try_explode();

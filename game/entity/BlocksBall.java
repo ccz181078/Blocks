@@ -20,6 +20,7 @@ private static final long serialVersionUID=1844677L;
 		if(!b.isCoverable())hp-=3;
 	}
 	void onKill(){
+		Fragment.gen(x,y,width(),height(),4,4,8,getBmp());
 		Source ex=SourceTool.explode(this);
 		while(!block.isEmpty()){
 			Block b=block.popItem();

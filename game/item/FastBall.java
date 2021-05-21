@@ -141,31 +141,31 @@ public class FastBall extends Vehicle{
 			
 			fix_a();
 		}
-		double c=0;
+		double c=0,C=1;
 		if(mode==0){
 			if(w.xdir!=0){
-				w.xa+=w.xdir*0.025;
+				w.xa+=w.xdir*0.025*C;
 				c+=0.03;
 			}
 			if(w.ydir!=0){
-				w.ya+=w.ydir*0.025;
+				w.ya+=w.ydir*0.025*C;
 				c+=0.03;
 			}
 		}else{
 			if(w.xdir!=0){
-				av0-=w.xdir*0.007;
+				av0-=w.xdir*0.007*C;
 				c+=0.01;
 			}
 			if(w.ydir!=0){
-				w.xa+=w.ydir*cos(a0)*0.025;
-				w.ya+=w.ydir*sin(a0)*0.025;
+				w.xa+=w.ydir*cos(a0)*0.025*C;
+				w.ya+=w.ydir*sin(a0)*0.025*C;
 				c+=0.03;
 			}
 		}
 		if(c>0){
 			if(rnd()<c*10){
 				loseEnergy(1);
-				if(rnd()<0.3)++damage;
+				if(rnd()<0.1)++damage;
 			}
 		}
 		reload += 0.015;

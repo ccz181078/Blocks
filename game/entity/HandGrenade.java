@@ -33,7 +33,8 @@ public class HandGrenade extends Entity{
 	
 	@Override
 	void touchAgent(Agent ent){
-		if(rnd()<ent.RPG_ExplodeProb())kill();
+		//if(rnd()<ent.RPG_ExplodeProb())kill();
+		kill();
 		super.touchAgent(ent);
 	}
 	

@@ -14,6 +14,7 @@ public class Tank extends Vehicle{
 	private static BmpRes bmp=new BmpRes("Item/Tank");
 	private static BmpRes bmp_armor[]=BmpRes.load("Armor/Tank_",4);
 	private static BmpRes bmp_gun[]=BmpRes.load("Armor/Gun_",2);
+	private static BmpRes bmp_speed[]=BmpRes.load("Armor/Speed_",4);
 	static BmpRes Jetbmps[]=BmpRes.load("Entity/JetFire_",4);
 	public BmpRes getBmp(){return bmp;}
 	public BmpRes getArmorBmp(){
@@ -27,6 +28,12 @@ public class Tank extends Vehicle{
 		if(damage<5000)return bmp_armor[1];
 		if(damage<7500)return bmp_armor[2];
 		return bmp_armor[3];
+	}
+	public BmpRes getSpeedBmp(){
+		if(max_vr>3.5f)return bmp_speed[3];
+		if(max_vr>2.5f)return bmp_speed[2];
+		if(max_vr>1.5f)return bmp_speed[1];
+		return bmp_speed[0];
 	}
 	public BmpRes getJetBmp(){
 		return Jetbmps[rndi(0,3)];
@@ -54,13 +61,13 @@ public class Tank extends Vehicle{
 		if(have_cost) damage+=2;
 		double x=hu.x+1.6*cos(a),y=hu.y+0.23+1.6*sin(a);
 		if(have_cost) reload -= fireReloadCost();
-		//if( !( ammo instanceof Bullet ) )
-		/*{
+		if( !( ammo instanceof Bullet ) )
+		{
 			Spark s=new Spark(0,0);
 			s.initPos(x+0.03*cos(a),y+0.03*sin(a),cos(a)*0.5,sin(a)*0.5,hu);
 			s.hp*=0.2;
 			s.add();
-		}*/
+		}
 		
 		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x,y,b,2*mv2());
 		loseEnergy(energyCost());
@@ -116,24 +123,39 @@ public class Tank extends Vehicle{
 	public float maxReload(){
 		return 4;
 	}
+	double max_vr=0;
+	int dir0=0;
+	boolean same_dir=false;
+	public double maxvr(){return same_dir?max_vr:0;}
+	public double frictionXr(){return 1;}
 
 	public void onUpdate(Human w){
 		//World.showText("damage="+damage);
+		max_vr*=0.997;
+		same_dir=false;
 		if(gun_cd!=0)gun_cd--;
 		reload+=0.033f;
 		if(reload>maxReload()-(float)abs(w.xv)*7.5f)reload=maxReload()-(float)abs(w.xv)*7.5f;
 		if(reload<0)reload=0;
 		if(!checkEnergy(5,w))return;
+		if(w.xdir!=0&&dir0==w.xdir){
+			if(mode==1)max_vr+=0.004;
+			else max_vr+=0.02;
+			same_dir=true;
+		}else{
+			max_vr*=0.97;
+			if(max_vr<0.05)dir0=w.xdir;
+		}
 		double c=0;
 		double t = 1f;
 		if( mode == 1 ) t *= 0.1;
 		if(w.xdir!=0&&w.ydep<0){
-			w.xa+=w.xdir*0.075*t;
+			//w.xa+=w.xdir*0.075*t/w.mass();
 			c+=0.06;
 			if(rnd()<0.002)++damage;
 		}
 		if(w.xdir!=0){
-			w.xa+=w.xdir*0.0015*t;
+			w.xa+=w.xdir*0.0015*t/w.mass();
 			c+=0.03;
 			if(rnd()<0.001)++damage;
 		}
@@ -209,12 +231,26 @@ public class Tank extends Vehicle{
 			getGunBmp().draw(cv,0.45f,0,0.9f,0.11f);
 		}cv.restore();
 		getTankBmp().draw(cv,0,0,1,(float)0.6);
-		if(hu.xdir>0)getJetBmp().draw(cv,-1.24f,-0.2f,0.4f,0.14f);
+		if(hu.xdir>0){
+			getJetBmp().draw(cv,-1.24f,-0.2f,0.4f,0.14f);
+		}
 		else if(hu.xdir<0){
 			cv.save();{
 				cv.rotate(180);
 				getJetBmp().draw(cv,-1.24f,+0.2f,0.4f,0.14f);
 			}cv.restore();
+		}
+		if(max_vr>0.5f)
+		{
+			if(dir0<0){
+				getSpeedBmp().draw(cv,0,0,0.95f,0.6f);
+			}
+			else{
+				cv.save();{
+					cv.rotate(180);
+					getSpeedBmp().draw(cv,0,0.384f,0.95f,0.6f);
+				}cv.restore();
+			}
 		}
 	}
 }

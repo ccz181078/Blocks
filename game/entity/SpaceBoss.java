@@ -7,7 +7,7 @@ import game.world.World;
 import game.block.Block;
 import game.block.BedRockBlock;
 
-public class SpaceBoss extends Agent{
+public class SpaceBoss extends NormalAgent{
 	private static final long serialVersionUID=1844677L;
 	static float[] model=new float[]{
 		-1,-1,-1, -1,-1,1, -1,-1,1, -1,1,1, -1,1,1, -1,1,-1, -1,1,-1, -1,-1,-1,
@@ -34,6 +34,7 @@ public class SpaceBoss extends Agent{
 		rxv=(float)rnd(-0.1,0.1);
 		ryv=(float)rnd(-0.1,0.1);
 	}
+	public Entity getBall(){return new DarkCube();}
 
 
 	public void update(){
@@ -47,8 +48,10 @@ public class SpaceBoss extends Agent{
 
 	public void ai(){
 		double md=1e10;
-		Player tg=null;
-		for(Player p:World.cur.getPlayers()){
+		Agent tg=null;
+		Enemy ene=es[rndi(0,es.length-1)];
+		if(ene!=null&&rnd()<0.8)tg=ene.w;
+		else for(Player p:World.cur.getPlayers()){
 			double d=distL1(p);
 			if(d<md){
 				md=d;

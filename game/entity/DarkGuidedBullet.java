@@ -9,8 +9,6 @@ import game.item.*;
 import util.BmpRes;
 
 public class DarkGuidedBullet extends GuidedBullet{
-	public double width(){return 0.3;}
-	public double height(){return 0.3;}
 	public boolean chkEnt(){return false;}
 	public boolean chkBlock(){return false;}
 	public DarkGuidedBullet(game.item.DarkGuidedBullet b){
@@ -22,7 +20,8 @@ public class DarkGuidedBullet extends GuidedBullet{
 	void touchEnt(Entity ent){
 		if(source==ent.source&&(ent instanceof GuidedBullet))return;
 		double v2=v2rel(ent);
-		ent.onAttacked(max(0,v2+0.05)*4*60,this);
+		ent.onAttacked(max(0,v2+0.05)*4*30,this);
+		exchangeVel(ent,0.1);
 		hp-=3;
 	}
 }

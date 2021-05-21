@@ -30,6 +30,14 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	public double maxXp(){return 10;}
 	public double hardness(){return game.entity.NormalAttacker.AGENT;}
 	public boolean hasBlood(){return true;}
+	
+	/*public boolean test_chkBlock(){
+		if(chkBlock()){
+			Block b=World.cur.get(x,y);
+			if(b.isSolid()||b.chkNonRigidEnt())return true;
+		}
+		return false;
+	}*/
 	public Agent(double _x,double _y){
 		x=_x;y=_y;
 		hp=maxHp();
@@ -48,6 +56,12 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	}
 	
 	public double RPG_ExplodeProb(){return 0.3;}
+	public static Agent temp(Agent w,final Source src){
+		Agent u=temp(w.x,w.y,w.width(),w.height(),w.dir,src);
+		u.xv=w.xv;
+		u.yv=w.yv;
+		return u;
+	}
 	public static Agent temp(double x,double y,final double w,final double h,final int dir,final Source src){
 		Agent tmp=new Agent(x,y){
 			public void add(){throw new UnsupportedOperationException();}
@@ -223,27 +237,27 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 		lr*=hp_rate;
 		if(xdir<0){
 			if(lr>0){
-				xa-=0.03*lr;
+				xa-=0.03*lr/mass();
 				//if(!in_wall)dir=-1;
 			}
 		}
 		if(xdir>0){
 			if(lr>0){
-				xa+=0.03*lr;
+				xa+=0.03*lr/mass();
 				//if(!in_wall)dir=1;
 			}
 		}
 		if(ydir!=0&&climbable){
-			ya+=ydir*0.02*hp_rate;
+			ya+=ydir*0.02*hp_rate/mass();
 		}else{
-			if((xdir<0&&xdep<0||xdir>0&&xdep>0)&&ydep==0)ya+=ydir*inblock*0.1;
+			if((xdir<0&&xdep<0||xdir>0&&xdep>0)&&ydep==0)ya+=ydir*inblock*0.1/mass();
 			if((ydir>0||xdir<0&&xdep<0||xdir>0&&xdep>0)&&ydep<0&&!in_wall)ya+=getJumpAcc();
-			else if(ydir>0&&inblock>0.05)ya+=0.05*lr;
-			if(ydir<0)ya-=0.05f*lr;
+			else if(ydir>0&&inblock>0.05)ya+=0.05*lr/mass();
+			if(ydir<0)ya-=0.05f*lr/mass();
 		}
 		if(in_wall){
-			if(lr>0)ya+=ydir*0.05*lr;
-			if(lr>0)xa+=xdir*0.02*lr;
+			if(lr>0)ya+=ydir*0.05*lr/mass();
+			if(lr>0)xa+=xdir*0.02*lr/mass();
 		}
 		if(des_flag&&rnd()<hp_rate){
 			if(destroyable(des_x,des_y)){
@@ -299,6 +313,12 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	public void draw(Canvas cv){//绘制
 		float w=(float)width(),h=(float)height();
 		game.ui.UI.drawProgressBar(cv,0xffff0000,0xff7f0000,(float)(hp/maxHp()),-w,h+0.1f,w,h+0.2f);
+		
+		cv.save();{
+			cv.scale(1,-1);
+			cv.drawText((int)round(hp)+"/"+(int)round(maxHp()),0,-(float)height()-0.15f,0.2f,0);
+		}cv.restore();
+		
 		super.draw(cv);
 	}
 	

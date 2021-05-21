@@ -62,7 +62,7 @@ abstract class RPG_Small_Guided extends RPG_Guided{
 			b.onFireUp(px,py);
 			if(b.isSolid())b.des(px,py,3,this);
 		}
-		else
+		else if(b.isSolid())
 			kill();
 	}
 	@Override

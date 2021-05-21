@@ -149,10 +149,8 @@ public class InfiniteZombieMode extends GameMode{
 		z.y=World.cur.getGroundY(x)+1;
 		z.add();
 	}
-
-	@Override
-	void initPlayer(Player player){
-		super.initPlayer(player);
+	
+	void give(Player player){
 		player.items.insert(new WoodenBlock().setAmount(20));
 		player.items.insert(new Iron().setAmount(20));
 		player.items.insert(new IronWorkBenchBlock().setAmount(1));
@@ -167,6 +165,12 @@ public class InfiniteZombieMode extends GameMode{
 		player.items.insert(new game.item.RPG_HEAT().setAmount(16));
 		player.items.insert(HeatEnergyCellGroup.full().setAmount(1));
 		player.items.insert(HeatEnergyCellGroup.full().setAmount(1));
+	}
+
+	@Override
+	void initPlayer(Player player){
+		super.initPlayer(player);
+		give(player);
 	}
 	
 	
@@ -195,12 +199,13 @@ public class InfiniteZombieMode extends GameMode{
 		if(rnd()<1./(500.))genZombie();
 		//if(rnd()<1./((1.+sqrt(level)/4.)*300.)&&time%30*120<30*60)genZombie();
 	}
-	public void onPlayerDead(Player player){
+	/*public void onPlayerDead(Player player){
 		player.dropItems();
 		player.respawn_time=150;
 		player.locked=true;
-	}
+	}*/
 	public void onPlayerRespawn(Player player){
-		new SetRelPos(player,null,0,-5);
+		give(player);
+		//new SetRelPos(player,null,0,-5);
 	}
 }

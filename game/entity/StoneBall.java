@@ -27,7 +27,7 @@ public class StoneBall extends Entity implements AttackFilter{
 	
 	@Override
 	void touchEnt(Entity ent){
-		double k=intersection(ent)*(0.1+v2rel(ent)*10)*10;
+		double k=intersection(ent)*(0.1+v2rel(ent)*40)*10;
 		ent.onAttacked(k,this);
 		hp-=k;
 		super.touchEnt(ent);

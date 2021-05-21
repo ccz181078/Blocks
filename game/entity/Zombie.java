@@ -77,12 +77,15 @@ public class Zombie extends Human{
 	
 	@Override
 	public void ai(){
+		if(World.cur.getMode() instanceof LevelMode){
+			if(World.cur.getRootPlayer().creative_mode)return;
+		}
 		Enemy.check(es);
 		goal=goal.update();
 		
 		boolean ent_near=false;
 		double xs=0,ys=0;
-		boolean place_block=false;
+		boolean place_block=false,af_flag=false;
 		if(armor.get() instanceof Vehicle)place_block=true;
 		for(Agent e:World.cur.getNearby(x,y,6,6,false,false,true).agents){
 			if(e instanceof BigShield){
@@ -103,6 +106,9 @@ public class Zombie extends Human{
 						}
 					}
 				}
+			}
+			if(e instanceof Airship_Flank){
+				if(abs(e.x-x)<1&&abs(y-2-e.y)<1)af_flag=true;
 			}
 		}
 		for(Entity e:World.cur.getNearby(x,y,6,6,false,true,false).ents){
@@ -143,6 +149,7 @@ public class Zombie extends Human{
 					w instanceof TeleportationSquare&&rnd()<0.1||
 					w instanceof FieldGen||
 					w instanceof game.item.ProtectionZone){
+					items.select(si);
 					w.autoUse(this,null);
 				}
 			}
@@ -151,6 +158,40 @@ public class Zombie extends Human{
 		if(armor.get() instanceof JetPack){
 			if(abs(xv)>0.3)xdir=(xv>0?-1:1);
 			if(abs(yv)>0.3)ydir=(yv>0?-1:1);
+		}
+		if(!(shoes.get() instanceof SpringShoes)&&!(armor.get() instanceof EnergyArmor)){
+			if(abs(xv)>0.01){
+				int d1=0,d2=0;
+				for(int d0=-1;d0<=1;++d0){
+					int m=(int)World.cur.setting.BW/2;
+					int d=m;
+					double x0=x+d0;
+					if(xv*d0>0)x0+=d0*min(0.2,abs(xv))*24;
+					for(int i=0;i<m;++i)if(!World.cur.get(x0,y-i).isCoverable()){
+						d=i;
+						break;
+					}
+					if(d>=max(m,6)){
+						d1+=d0;
+						d2+=1;
+					}
+				}
+				if(d2>0){
+					xdir=-d1;
+					if(ydir>0)ydir=0;
+				}
+			}
+			if(!af_flag&&yv<-0.5){
+				if(World.cur.get(x,y-5).isSolid())
+				for(SingleItem si:items.toArray()){
+					Item w=si.get();
+					if(w instanceof AirshipFlank){
+						items.select(si);
+						clickAt(x+xv,y-1-height());
+						break;
+					}
+				}
+			}
 		}
 	}
 
@@ -271,7 +312,7 @@ public class Zombie extends Human{
 			if(hp<maxHp()*0.3&&rnd()<0.05){
 				return prev;
 			}
-			if(rnd()<0.9&&distLinf(a)<NearbyInfo.BW)(new RangedAttack(a)).update();
+			if(rnd()<0.9&&distLinf(a)<World.cur.setting.BW)(new RangedAttack(a)).update();
 			if(rnd()<0.5){
 				return new MoveToAgent(a);
 			}
@@ -379,7 +420,7 @@ public class Zombie extends Human{
 		}
 		private final void findHuman(){
 			double md=300;
-			for(Agent a:World.cur.getNearby(x,y,NearbyInfo.BW,NearbyInfo.BW/2,false,false,true).agents){
+			for(Agent a:World.cur.getNearby(x,y,World.cur.setting.BW,World.cur.setting.BW/2,false,false,true).agents){
 				if(a==Zombie.this)continue;
 				if(a instanceof Human){
 					double d=distL2(a);
@@ -407,7 +448,7 @@ public class Zombie extends Human{
 				return new EatFood();
 			}
 			if(rnd()<0.05)checkArmor();
-			if(rnd()<0.9&&distLinf(pl)<NearbyInfo.BW)(new RangedAttack(pl)).update();
+			if(rnd()<0.9&&distLinf(pl)<World.cur.setting.BW)(new RangedAttack(pl)).update();
 			if(rnd()<0.1){
 				Agent a=Enemy.weightedSelect(es);
 				if(a!=null){
@@ -490,6 +531,7 @@ public class Zombie extends Human{
 		||it instanceof Iron
 		||it instanceof EnergyMotor
 		||it instanceof ExplosiveBlock
+		||it instanceof Mine
 		||it instanceof LaunchableItem
 		||it instanceof FieldGen
 		||it instanceof game.item.BigShield
@@ -509,6 +551,7 @@ public class Zombie extends Human{
 		private static final long serialVersionUID=1844677L;
 		static final double E_ATK=1;//6
 		double xl,xr,yl,yr;
+		int matk0=0;
 		int xdir0=1;
 		int time=0;
 		Human pl=null;
@@ -529,7 +572,7 @@ public class Zombie extends Human{
 		}
 		private final void findHuman(){
 			double md=300;
-			for(Agent a:World.cur.getNearby(x,y,NearbyInfo.BW,NearbyInfo.BW/2,false,false,true).agents){
+			for(Agent a:World.cur.getNearby(x,y,World.cur.setting.BW,World.cur.setting.BW/2,false,false,true).agents){
 				if(a==Zombie.this)continue;
 				//if(a instanceof Zombie)continue;//test
 				if(a instanceof Human){
@@ -548,10 +591,12 @@ public class Zombie extends Human{
 				if(x0<mode.cur_l||x0>mode.cur_r||abs(mode.airship.x-x0)<2)ydir=-1;
 				return this;
 			}
-			xl=min(left,xl);xr=max(right,xr);
-			yl=min(bottom,yl);yr=max(top,yr);
+			xl=min(x,xl);xr=max(x,xr);
+			yl=min(y,yl);yr=max(y,yr);
 			++time;
+			//if(World.cur.time%10==0)Text.gen(x,y,"M:"+matk0,Zombie.this);
 			if(time>16&&rnd()<0.09){
+				if(max(xr-xl,(yr-yl)/3.)<1)matk0+=1;
 				if(max(xr-xl,yr-yl)<1&&(xdir!=0||ydir!=0)){
 					for(int t=0;t<5;++t){
 						BlockAt ba=World.cur.get1(f2i(rnd(xl-0.2,xr+0.2)),f2i(rnd(yl,yr)));
@@ -565,6 +610,7 @@ public class Zombie extends Human{
 				yl=yr=y;
 				time=0;
 			}
+			if(matk0>0&&rnd()<1./300)matk0=max(0,matk0-5);
 			if(rnd()<0.2&&hp<maxHp()*0.8){
 				new EatFood().update();
 			}
@@ -631,6 +677,7 @@ public class Zombie extends Human{
 						
 						double fc=min(50,(mode.cur_r-mode.cur_l)/3);
 						boolean near_out=(x<mode.cur_l+fc||x>mode.cur_r-fc);
+						if((x<mode.cur_l+5||x>mode.cur_r-5)&&rnd()<1./8)matk0+=1;
 						if(rnd()<0.0001)xdir=(rnd()<0.5?-1:1);
 						Block b=World.cur.get(px,py).rootBlock();
 						Block b1=World.cur.get(px,py-1).rootBlock();
@@ -678,12 +725,11 @@ public class Zombie extends Human{
 				}
 				if(cur_craft!=null)xdir=ydir=0;
 				if(xdir!=0&&in_wall)ydir=1;
-			}else if(pl.isRemoved()||abs(x-pl.x)>NearbyInfo.BW+0.29||abs(y-pl.y)>NearbyInfo.BW/2+0.95){
+			}else if(pl.isRemoved()||abs(x-pl.x)>World.cur.setting.BW+pl.width()||abs(y-pl.y)>World.cur.setting.BW/2+pl.height()){
 				pl=null;
 				e_atk=E_ATK;
 			}else{
 				dir=(x<pl.x?1:-1);
-				if(rnd()<(pl instanceof Zombie ? 0.005 : 1))(new RangedAttack(pl)).update();
 				/*if(rnd()<0.1){
 					Agent a=Enemy.weightedSelect(es);
 					if(a!=null){
@@ -708,6 +754,7 @@ public class Zombie extends Human{
 					}
 					double e_atkx=e_atk;
 					if(pl instanceof Zombie)e_atkx+=10;
+					else e_atkx=max(0,e_atkx-matk0*3);
 					if((hp+food)/(e_atkx*ar)<=(pl.hp+5)/(atk*e_ar)){
 						xdir=x<pl.x?-1:1;
 						state=0;
@@ -729,10 +776,11 @@ public class Zombie extends Human{
 				}
 				dir=(x<pl.x?1:-1);
 				final double w1=0.3f,h1=0.5f,x1=x+dir*(width()+w1);
-				if(abs(pl.x-x1)<w1+pl.width()&&abs(pl.y-y)<h1+pl.height()){
+				if(abs(pl.x-x1)<w1+pl.width()+abs(xv)+abs(pl.xv)&&abs(pl.y-y)<h1+pl.height()){
 					attack();
 					new PhysicsAttack(pl).update();
 				}
+				if(rnd()<(pl instanceof Zombie ? 0.005 : 1))(new RangedAttack(pl)).update();
 			}
 			if(World.cur.get(x,y-1).isSolid()){
 				if(xdir!=0&&ydir>=0){
@@ -751,6 +799,7 @@ public class Zombie extends Human{
 				items.insert(shoes);
 				checkArmor();
 			}
+			if(ball_cd>6)cancelDes();
 			if(rnd()<0.2){
 				if(des_flag)new DesBlock(World.cur.get1(des_x,des_y)).update();
 				if(!des_flag){
@@ -811,7 +860,7 @@ public class Zombie extends Human{
 		SingleItem tmp=new SingleItem();
 		public ECAirship(){}
 		void nextBoxPos(){
-			if(round>10)return;
+			if(round>8)return;
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
 			double m=(mode.nxt_l+mode.nxt_r)/2;
 			double d=(mode.nxt_r-mode.nxt_l)/2;
@@ -843,7 +892,8 @@ public class Zombie extends Human{
 			if(rnd()<0.8)box.insert(new QuartzArmor().setAmount(1));
 			
 			if(rnd()<0.3)box.insert(new game.item.IronBall_HD().setAmount(1+rf2i(rnd_exp(1))));
-			if(rnd()<0.3)box.insert(new game.item.HeatBall().setAmount(1+rf2i(rnd_exp(1))));
+			if(rnd()<0.15)box.insert(new game.item.HeatBall().setAmount(1+rf2i(rnd_exp(1))));
+			if(rnd()<0.15)box.insert(new game.item.DarkIronBall().setAmount(1+rf2i(rnd_exp(1))));
 			
 			
 			if(rnd()<0.5)box.insert(new EnergyStone().setAmount(1+rf2i(rnd_exp(5))));
@@ -919,7 +969,7 @@ public class Zombie extends Human{
 			if(ball_cd>0)--ball_cd;
 			if(rpg_cd>0)--rpg_cd;
 			if(rpg_cd_tot>0)--rpg_cd_tot;
-			
+			SingleItem sel=items.getSelected();
 			SingleItem[] si=items.toArray();
 			if(ra_cache==null){
 				ra_cache=new int[4];
@@ -952,6 +1002,7 @@ public class Zombie extends Human{
 					//break;
 				}
 			}
+			items.select(sel);
 			//System.err.println(World.cur.time+" RangedAttack failed");
 			/*Item it=items.getSelected().get();
 			if(it!=null){

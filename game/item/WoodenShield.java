@@ -17,5 +17,15 @@ class CactusShield extends WoodenShield{
 	private static final long serialVersionUID=1844677L;
 	public int swordVal(){return 3;}
 	public double hardness(){return game.entity.NormalAttacker.CACTUS;}
+	
+	public int foodVal(){return 12;}
+	public int eatTime(){return 150;}
+	public void using(UsingItem ent){
+		if(ent.hp>120){
+			Human hu=(Human)ent.ent;
+			hu.loseHp(0.3,SourceTool.item(hu,this));
+		}
+		super.using(ent);
+	}
 }
 

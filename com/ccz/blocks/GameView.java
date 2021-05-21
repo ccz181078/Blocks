@@ -77,7 +77,7 @@ public class GameView extends JComponent {
 		try{
 			cv.save();
 			cv.translate(W/2f,H/2f);
-			float C=NearbyInfo.BW*Math.min(1,(H*2f)/W);
+			float C=12*Math.min(1,(H*2f)/W);
 			cv.scale(H/C,-H/C);
 			mc.draw();
 			cv.restore();

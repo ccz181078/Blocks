@@ -35,7 +35,7 @@ public abstract class EnergyLauncher extends EnergyTool implements ShootableTool
 		if(!ready())return this;
 		y-=w.y;
 		x-=w.x+w.dir*w.width();
-		if(shootCond())shoot(y/x,w);
+		if(x*w.dir>0&&shootCond())shoot(y/x,w);
 		return this;
 	}
 	@Override
@@ -59,17 +59,18 @@ public abstract class EnergyLauncher extends EnergyTool implements ShootableTool
 			++damage;
 		}
 		Entity ball=getBall();
-		w.throwEnt(ball,s,mv2());
+		Agent.temp(w,game.entity.SourceTool.make(w,"使用"+getName())).throwEnt(ball,s,mv2());
 	}
 	public Entity test_shoot(Human w,double x,double y){
 		if(!ready())return null;
 		
 		y-=w.y;
 		x-=w.x+w.dir*w.width();
+		if(x*w.dir<=0)return null;
 		
 		Entity.beginTest();
 		Entity ball=getBall();
-		w.throwEnt(ball,y/x,mv2());
+		if(ball!=null)w.throwEnt(ball,y/x,mv2());
 		return Entity.endTest();
 	}
 	

@@ -55,7 +55,7 @@ public class Text extends NonInteractiveEnt{
 		//System.out.println("D:"+game.world.World.cur.time+"::"+this+":"+hp+":"+x+","+y+":"+text);
 		cv.save();
 		cv.scale(1,-1);
-		cv.drawText(text,0,0,0.3f*game.world.NearbyInfo.BW/12,0);
+		cv.drawText(text,0,0,0.3f*game.world.World.cur.setting.BW/12,0);
 		cv.restore();
 	}
 	

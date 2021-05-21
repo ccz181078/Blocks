@@ -9,7 +9,7 @@ public class FuelEnergyCell extends EnergyCell{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Item/FuelEnergyCell");
 	public BmpRes getBmp(){return bmp;}
-	public int maxEnergy(){return 120*2*4*5*4;}
+	public int maxEnergy(){return 120*2*4*1*4;}
 	// carbon_powder_fuelval * heating_time_per_fuelval * furnace_slot_num * energy_gain_per_frame_per_slot * carbon_powder_per_cell
 	@Override
 	public int resCap(){return 0;}

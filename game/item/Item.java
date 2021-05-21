@@ -43,6 +43,16 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	public void onAttack(Entity a,Source src){}//被用于攻击生物
 	public double hardness(){return game.entity.NormalAttacker.AGENT;}
 	
+	public void onExplode(Entity pos,double tx,double ty,int amount,Source src){
+		for(int i=0;i<amount;++i)onExplode(pos,tx,ty,src);
+	}
+	public void onExplode(Entity pos,double tx,double ty,Source src){
+		Entity e=asEnt();
+		if(e!=null){
+			e.initPos(pos.x+rnd_gaussion()*0.3,pos.y+rnd_gaussion()*0.3,pos.xv+rnd_gaussion()*0.3,pos.yv+rnd_gaussion()*0.3,src).add();
+		}
+	}
+	
 	public boolean longable(){return false;}
 	
 	int energyCost(){return 1;}
@@ -79,23 +89,29 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	//手持
 	public void onCarried(game.entity.Agent a){
 		if(!(a instanceof Player))return;
-		Human h=(Human)a;
-		Entity.predict(h);
-		if(
-		  this instanceof ThrowableItem
-		||this instanceof RPGItem
-		||this instanceof Bullet
-		||this instanceof BasicBall
-		||this instanceof game.block.ExplosiveBlock
-		||this instanceof game.block.HDEnergyStoneBlock){
+		Player h=(Player)a;
+		//Entity.predict(h);
+		if(World.cur.setting.shoot_trajectory_prediction){
 			Armor ar=h.armor.get();
 			if(ar instanceof Tank){
 				Entity.predict(((Tank)ar).test_shoot(h,((Tank)ar).a,this.clone()));
+			}else if(ar instanceof Airship){
+				Entity.predictHit(((Airship)ar).test_shoot(h,h.x+h.action.tx,h.y+h.action.ty,Item.this.clone(),false),a);
+				Entity.predictHit(((Airship)ar).test_shoot(h,h.x+h.action.tx,h.y+h.action.ty,Item.this.clone(),true),a);
 			}else if(ar instanceof Shilka){
 				Entity.predict(((Shilka)ar).test_shoot(h,((Shilka)ar).a,this.clone()));
+			}else if(ar instanceof FastBall){
+				Entity.predict(((FastBall)ar).test_shoot(h,((FastBall)ar).a,this.clone()));
+			}else{
+				Item w=h.getCarriedItem().get();
+				if(w instanceof ShootableTool){
+					Entity.predict(((ShootableTool)w).test_shoot(h,h.x+h.action.tx,h.y+h.action.ty));
+				}
 			}
 		}
 	}
+	
+	public void setCursorState(Agent w,boolean on,double tx,double ty,long press_time){}
 	
 	public boolean isCreative(){return false;}
 	
@@ -332,7 +348,7 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 		return new BmpRes("Item/"+getClass().getSimpleName());
 	}
 	public SingleItem setAmount(int amount){//转化为一个SingleItem
-		amount=min(amount,maxAmount());//TO DEBUG
+		//amount=min(amount,maxAmount());//TO DEBUG
 		return new SingleItem(this,amount);
 	}
 	

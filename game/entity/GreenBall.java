@@ -10,7 +10,8 @@ public class GreenBall extends Ball{
 	public BmpRes getBmp(){return bmp;}
 	static BmpRes bmp=new BmpRes("Entity/GreenBall");
 	public double hardness(){return game.entity.NormalAttacker.POWDER;}
-	
+	public boolean harmless(){return true;}
+
 	public boolean chkRigidBody(){return true;}
 
 	public GreenBall(){

@@ -11,6 +11,8 @@ public abstract class Shoes extends DefendTool implements AttackFilter{
 	public double toolVal(){return 0.2;}
 	public double width(){return 0.5;}
 	public double height(){return 0.5;}
+	public double maxvr(){return 1;}
+	public double mass(){return 0.1;}
 	
 	public void onBroken(double x,double y){
 		Fragment.gen(x,y,0.5,0.5,4,4,8,getBmp());
