@@ -33,7 +33,7 @@ public class FireBoss extends NormalAgent{
 	transient float av=0;
 
 	@Override
-	protected float getRotation(){return angle;}
+	public float getRotation(){return angle;}
 	
 	
 	@Override
@@ -78,7 +78,7 @@ public class FireBoss extends NormalAgent{
 				if(World.cur.getGroundY(f2i(tg.x))<tg.y+15){
 					for(int i=0;i<4;++i){
 						FireBall f=new FireBall();
-						f.initPos(tg.x+rnd_gaussion()*2,min(128,tg.y+15)-rnd(5),0,-0.3,this);
+						f.initPos(tg.x+rnd_gaussion()*2,min(World.cur.getMaxY()+1,tg.y+15)-rnd(5),0,-0.3,this);
 						f.setHpScale(3);
 						f.add();
 					}

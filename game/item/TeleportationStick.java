@@ -16,6 +16,9 @@ private static final long serialVersionUID=1844677L;
 	int cd=0;
 	public Item clickAt(double x,double y,Agent a){
 		if(cd>0)return this;
+		if(!a.hasEnergy(20))return this;
+		a.loseEnergy(20);
+		
 		int c=rf2i(hypot(x-a.x,y-a.y)*0.2+a.mass()*0.5);
 		new SetRelPos(a,null,x,y);
 		damage+=c;

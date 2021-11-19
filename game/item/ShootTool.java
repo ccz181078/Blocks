@@ -23,7 +23,7 @@ public class ShootTool{
 		Pos p=Optimizer.optimize(f,0,1,0.01);
 		if(p.y<0){
 			ni[0]=World.cur.getNearby(h.x,h.y,World.cur.setting.BW,World.cur.setting.BW/2,false,true,true);
-			if(f.get(p.x)>=0)return true;
+			if(f.get(p.x)>=0)return false;
 			double c=cos(p.x),s=sin(p.x);
 			h.clickAt(h.x+(x*c+y*s),h.y+(-x*s+y*c));
 			return true;

@@ -87,9 +87,9 @@ public class Shilka extends Vehicle{
 	public boolean onArmorClick(Human hu,double tx,double ty){
 		if(abs(tx-hu.x)<=width()&&abs(ty-hu.y)<=height())
 			if( walk == 0 )
-				walk = 20;
+				walk = 40;
 			else
-				walk = 19;
+				walk = 39;
 		else
 			shoot(hu,a,tan(a));
 		return true;
@@ -98,11 +98,16 @@ public class Shilka extends Vehicle{
 	public float maxReload(){
 		return 3.3f;
 	}
-
+	public double getShootX(Human hu,double a,int cnt){
+		return hu.x+1.6*cos(a)-0.15*(cnt-3)*sin(a);
+	}
+	public double getShootY(Human hu,double a,int cnt){
+		return hu.y+0.15*(cnt-3)*cos(a)+1.6*sin(a)+0.23;
+	}
 	public void onUpdate(Human w){
 		//World.showText("damage="+damage);
-		if( walk > 0 && walk < 20 ) walk--;
-		int t;{
+		if( walk > 0 && walk < 40 ) walk--;
+		{
 			Pipeline_5 p=gun.get();
 			if(p!=null)p.onUpdate(w,this);
 		}
@@ -135,9 +140,9 @@ public class Shilka extends Vehicle{
 			}
 		}else{
 			//if(w.ydep!=0)w.xf+=0.6;
-			if(w.ydep!=0)w.xf+=5;
-			if(w.xdep!=0)w.yf+=5;
-			if(w.ydep<0)w.f+=5;
+			if(w.ydep!=0)w.xf+=50;
+			if(w.xdep!=0)w.yf+=50;
+			if(w.ydep<0)w.f+=50;
 		}
 	}
 	public double getJumpAcc(Human h,double v){return walk==0?v:0;}
@@ -145,7 +150,7 @@ public class Shilka extends Vehicle{
 	public Attack transform(Attack a){
 		double t = 1;
 		if(!hasEnergy(1))t*=3;
-		if(walk!=0)t*=0.4;
+		if(walk!=0)t*=0.25;
 		int v=rf2i(a.val*t);
 		//System.out.println("v2:"+a.getClass()+" "+a.val);
 		if(a instanceof FireAttack){

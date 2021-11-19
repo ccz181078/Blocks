@@ -20,6 +20,10 @@ public abstract class EnergyLauncher extends EnergyTool implements ShootableTool
 	private int last_cd=1;
 	int getCd(){return 30;}
 	boolean ready(){return next_time<=World.cur.time;}
+	public void copyCd(EnergyLauncher el){
+		last_cd=el.last_cd;
+		next_time=el.next_time;
+	}
 	void resetCd(){
 		resetCd(getCd());
 	}
@@ -59,7 +63,7 @@ public abstract class EnergyLauncher extends EnergyTool implements ShootableTool
 			++damage;
 		}
 		Entity ball=getBall();
-		Agent.temp(w,game.entity.SourceTool.make(w,"使用"+getName())).throwEnt(ball,s,mv2());
+		Agent.temp(w,game.entity.SourceTool.use(w,getName())).throwEnt(ball,s,mv2());
 	}
 	public Entity test_shoot(Human w,double x,double y){
 		if(!ready())return null;

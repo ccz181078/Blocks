@@ -19,6 +19,9 @@ public class RPGLauncherDisposable extends Tool implements ShootableTool,Default
 	}
 	public Item clickAt(double x,double y,Agent w){
 		if(!shootCond())return this;
+		if(!w.hasEnergy(10))return this;
+		w.loseEnergy(10);
+		
 		Item r = rpg.popItem();
 
 		y-=w.y;
@@ -46,21 +49,7 @@ public class RPGLauncherDisposable extends Tool implements ShootableTool,Default
 
 	public boolean autoShoot(Human h,Agent a){
 		h.items.insert(rpg);
-		if(rpg.isEmpty()){
-			SingleItem ss[]=h.items.toArray();
-			for(int t=0;t<30;++t){
-				int id=rndi(0,ss.length-1);
-				SingleItem si=ss[id];
-				if(si.isEmpty())continue;
-				Item it=si.get();
-				if(it instanceof RPGLauncher)continue;
-				if(it.foodVal()>0)continue;
-				if(it instanceof LaunchableItem){
-					rpg.insert(si);
-					break;
-				}
-			}
-		}
+		if(rpg.isEmpty())RPGLauncher.selectLaunchableItem(h,rpg);
 		if(rpg.isEmpty())return false;
 		Item it=rpg.get();
 		if(

@@ -14,7 +14,7 @@ public class IronScaffoldBlock extends IronBasedType{
 	double frictionIn1(){return 0.5;}
 	
 	public void touchEnt(int x,int y,Entity ent){
-		if(min(y+1,ent.top)-max(y,ent.bottom)>0.1)ent.climbable=true;
+		onScaffoldTouchEnt(x,y,ent);
 		super.touchEnt(x,y,ent);
 	}
 }

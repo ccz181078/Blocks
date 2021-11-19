@@ -19,6 +19,7 @@ public class BloodGuidedBullet extends GuidedBullet{
 	@Override
 	void touchEnt(Entity ent){
 		if(source==ent.source&&(ent instanceof GuidedBullet))return;
+		if(checkRecycle(ent))return;
 		if(ent instanceof Agent)BloodBall.drop((Agent)ent,rnd(2,4),this);
 		hp-=3;
 	}

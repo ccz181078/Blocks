@@ -6,14 +6,12 @@ import game.item.Coal;
 import game.world.World;
 import static java.lang.Math.*;
 
-public class CoalOreBlock extends StoneBlock{
-	private static final long serialVersionUID=1844677L;
+public class CoalOreBlock extends StoneBlock implements OreBlockType{
 	static BmpRes bmp=new BmpRes("Block/CoalOreBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 90;}
 	public int fuelVal(){return 100;}
-	public void onDestroy(int x,int y){
-		super.onDestroy(x,y);
+	public void dropAt(int x,int y){
 		new Coal().drop(x,y,rndi(1,2));
 	}
 	public void onDestroyByFire(int x,int y){

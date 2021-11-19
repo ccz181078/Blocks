@@ -7,6 +7,7 @@ public interface NormalAttacker{
 	LEAF=0,
 	DIRT=0.8,
 	AGENT=1,
+	PAPER=1.5,
 	WOODEN=2,
 	CACTUS=2.5,
 	GOLD=2.7,

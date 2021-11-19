@@ -29,16 +29,39 @@ public class GameView extends JComponent {
 	
 	public void invalidate(){
 		repaint();
+		long t=System.currentTimeMillis()-last_time;
+		if(t>=5000){
+			double fps=frame_cnt*1e3/t;
+			double Bps=tot_length*1e3/t;
+			double Bps_c=compressed_length*1e3/t;
+			updateStat();
+			String s=String.format("Blocks   %.1f fps   %d B/s   %d B/s",fps,(int)Math.ceil(Bps),(int)Math.ceil(Bps_c));
+			ctx.setTitle(s);
+		}
 	}
 	
 	byte last_ni[]=null;
 	
 	int cnt_m=0;
 	
+	int frame_cnt=0;
+	long tot_length=0;
+	long compressed_length=0;
+	long last_time=0;
+	
+	public void updateStat(){
+		frame_cnt=0;
+		tot_length=0;
+		compressed_length=0;
+		last_time=System.currentTimeMillis();
+	}
+	
 	@Override
 	public void paint(Graphics cv) {
 		//	System.err.println("paint!");
 		try{
+		if(last_time==0)updateStat();
+		
 		super.paint(cv);
 		ctx.action.width=getWidth();
 		ctx.action.height=getHeight();
@@ -57,15 +80,22 @@ public class GameView extends JComponent {
 			while(ni.size()>cnt){
 				last_ni=ni.poll();
 				draw(cv,last_ni,getWidth(),getHeight(),true);
-				if(ss!=null)ss.write(last_ni);
+				tot_length+=last_ni.length;
+				if(ss!=null)compressed_length+=ss.write(last_ni);
 			}
 			last_ni=ni.poll();
 			draw(cv,last_ni,getWidth(),getHeight(),false);
-			if(ss!=null)ss.write(last_ni);
+			tot_length+=last_ni.length;
+			if(ss!=null)compressed_length+=ss.write(last_ni);
+			frame_cnt+=1;
 			//System.err.println("draw frame!");
 		}else if(last_ni!=null){
 			draw(cv,last_ni,getWidth(),getHeight(),false);
 			//System.err.println("skip frame!");
+		}
+		if(World.cur!=null){
+			compressed_length+=World.cur.compressed_length;
+			World.cur.compressed_length=0;
 		}
 
 		}catch(Exception e){e.printStackTrace();debug.Log.i(e);}

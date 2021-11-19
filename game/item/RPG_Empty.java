@@ -12,4 +12,5 @@ public class RPG_Empty extends RPGItem{
 	protected Entity toEnt(){
 		return new game.entity.RPG_Empty(this);
 	}
+	public double launchValue(){return 500;}
 };

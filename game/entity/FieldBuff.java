@@ -13,7 +13,7 @@ public class FieldBuff extends Buff{
 	}
 	public FieldBuff(Agent tg,FieldGen fg,double r){
 		super(tg);
-		source=SourceTool.make(tg,"设置的");
+		source=SourceTool.set(tg);
 		field=fg;
 		r0=r;
 		radius=0;
@@ -23,6 +23,7 @@ public class FieldBuff extends Buff{
 		xv=tg.xv;
 		yv=tg.yv;
 	}
+	public boolean shouldKeepAwayFrom(){return true;}
 	public double light(){return field.light(this);}
 	public void update(){
 		hp-=0.5;

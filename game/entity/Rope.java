@@ -6,7 +6,7 @@ import static util.MathUtil.*;
 import game.item.*;
 
 public class Rope extends Entity{
-	public double radius(){return 0.3;}
+	public double radius(){return 0.15;}
 	public double width(){return radius();}
 	public double height(){return radius();}
 	//public boolean chkRigidBody(){return false;}
@@ -14,7 +14,7 @@ public class Rope extends Entity{
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 	Entity prev,next;
 	double px,py;
-	static BmpRes bmp=new BmpRes("Entity/StoneMonster");
+	static BmpRes bmp=new BmpRes("Entity/Rope");
 	public BmpRes getBmp(){return bmp;}
 	public Rope(){
 		hp=100;
@@ -84,10 +84,10 @@ public class Rope extends Entity{
 		}
 	}
 	public void draw(graphics.Canvas cv){//绘制
-		if(prev!=null){
+		/*if(prev!=null){
 			float ps[]=new float[]{0,0,(float)(prev.x+px-x),(float)(prev.y+py-y)};
 			cv.drawLines(ps,0xff808080);
-		}
+		}*/
 		super.draw(cv);
 	}
 }

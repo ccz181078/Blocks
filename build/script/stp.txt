@@ -1,0 +1,1 @@
+World.cur.setting.shoot_trajectory_prediction=!World.cur.setting.shoot_trajectory_prediction

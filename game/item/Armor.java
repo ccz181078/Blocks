@@ -22,6 +22,8 @@ public abstract class Armor extends DefendTool{
 	public double maxvr(){return 1;}
 	public double frictionXr(){return 1;}
 	
+	public boolean rotByVelDir(){return false;}
+	
 	public float getRotation(){return 0;}
 	public Attack transform(Attack a){
 		if(a instanceof NormalAttack){
@@ -29,6 +31,8 @@ public abstract class Armor extends DefendTool{
 		}
 		return super.transform(a);
 	}
+	
+	public int wearEnergyCost(){return 10;}
 	
 	@Override
 	public void onUse(Human a){
@@ -53,6 +57,16 @@ public abstract class Armor extends DefendTool{
 		return v;
 	}//减小水平撞击导致的伤害
 	
+	public double fluidResistance(){
+		return 1;
+	}
+	public boolean chkRigidBody(){
+		return true;
+	}
+	
+	public int maxAir(){
+		return 1;
+	}
 	public void drawLeftInfo(graphics.Canvas cv){
 		float damage=1-this.damage*1f/maxDamage();
 		drawProgressBar(cv,0xff00ff00,0xff3f7f7f,damage,2.1f,0.1f,3.9f,0.3f);

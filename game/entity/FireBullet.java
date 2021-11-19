@@ -20,7 +20,7 @@ public class FireBullet extends Bullet{
 	
 	public FireBullet(game.item.FireBullet b){
 		super(b);
-		hp=60 * (0.2*rnd_gaussion()+1);
+		hp=120 * (0.2*rnd_gaussion()+1);
 	}
 	public void update(){
 		super.update();

@@ -11,6 +11,7 @@ public class IronPatch extends Item{
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 	
 	public void onUse(Human hu){
+		Human.RecoverItem ri=hu.new RecoverItem(this);
 		Armor ar=hu.armor.get();
 		if(ar!=null&&(ar instanceof EnergyArmor)){
 			EnergyArmor ea=(EnergyArmor)ar;
@@ -18,6 +19,7 @@ public class IronPatch extends Item{
 				UsingItem.gen(0.3,0.3,100,this,hu);
 				ea.loseEnergy(100);
 				ea.last_fix_time=World.cur.time+100;
+				ri.end();
 				return;
 			}
 		}

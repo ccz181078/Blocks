@@ -40,6 +40,7 @@ public class EnergyBall extends PureEnergyBall{
 			hp-=0.5;
 			b.des(px,py,1,this);
 			if(b.isSolid()){
+				hp*=0.5;
 				hp-=3;
 			}
 		}

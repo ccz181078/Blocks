@@ -85,6 +85,9 @@ public class Bullet extends Entity{
 	@Override
 	public double RPG_ExplodeProb(){return bullet.RPG_ExplodeProb();}
 	public void onKill(){
+		/*RPG_HE r=new RPG_HE(new game.item.RPG_HE());
+		r.initPos(x,y,xv,yv,this);
+		r.explode();*/
 		bullet.onKill(x,y,this);
 	}
 	public double gA(){return 0.03/((xv*xv+yv*yv)*100+1);}

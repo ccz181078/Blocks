@@ -11,8 +11,7 @@ import game.entity.*;
 class Chunk implements Serializable{
 	private static final long serialVersionUID=1844677L;
 	//描述世界中的一个块，除World以外一般不应该使用这个类
-	
-	Block blocks[]=new Block[World_Height<<log_Chunk_Width];
+	Block blocks[];
 	ArrayList<Entity> ni_ents=new ArrayList<>();
 	ArrayList<Entity> ents=new ArrayList<>();
 	ArrayList<Agent> agents=new ArrayList<>();
@@ -37,25 +36,35 @@ class Chunk implements Serializable{
 		private static final long serialVersionUID=1844677L;
 		ArrayList<Entity> es[];
 		RectSearchDS(){
-			es=new ArrayList[32];
-			for(int i=0;i<32;++i)es[i]=new ArrayList<>();
+			es=null;
 		}
 		int mapY(double y){
-			return max(0,min(127,(int)y))/4;
+			return max(0,min(World.cur.getMaxY(),(int)y))/4;
 		}
-		void update(ArrayList es0){
+		void update(ArrayList<? extends Entity> es0){
+			if(es==null){
+				int sz=(World.cur.getMaxY()+1)/4;
+				es=new ArrayList[sz];
+				for(int i=0;i<sz;++i)es[i]=new ArrayList<>();
+			}
 			for(ArrayList<Entity> e:es)e.clear();
-			for(Entity e:(ArrayList<Entity>)es0){
+			for(Entity e:es0){
 				if(e.locked)continue;
 				es[mapY(e.y)].add(e);
 			}
 		}
 		void query(NearbyInfo ni,ArrayList dst){
+			if(es==null)return;
 			int ly=mapY(ni.my-ni.yd-1);
 			int ry=mapY(ni.my+ni.yd+1);
 			for(int i=ly;i<=ry;++i)getEnts(ni,es[i],dst);
 		}
 	}
+	static class EntMass{
+		int x,y,m;
+	}
+	private transient ArrayList<EntMass> ent_mass_list;
+	
 	private transient RectSearchDS 
 		ni_ents_ds=new RectSearchDS(),
 		ents_ds=new RectSearchDS(),
@@ -66,9 +75,10 @@ class Chunk implements Serializable{
 	CompressedBlocks cbs=null;
 	transient boolean gen_ent;
 	void setX(int x,Block[] block){//unchecked
-		for(int y=0;y<World_Height;++y)blocks[y<<log_Chunk_Width|x]=block[y];
+		for(int y=0;y<World.cur.World_Height;++y)blocks[y<<log_Chunk_Width|x]=block[y];
 	}
 	void init(int _id,WorldGenerator gen,int dir){
+		blocks=new Block[World.cur.World_Height<<log_Chunk_Width];
 		id=_id;
 		World.cur.getMode().initChunk(this,gen,dir);
 	}
@@ -100,11 +110,31 @@ class Chunk implements Serializable{
 		for(Entity e:ents)if(e.active())e.move();
 		for(Agent a:agents)if(a.active())a.move();
 	}
+	void addEntMass(Entity e){
+		int m=rf2i(e.mass());
+		if(m<=0)return;
+		EntMass em=new EntMass();
+		em.x=rf2i(e.x-0.5);
+		em.y=rf2i(e.y-0.5);
+		em.m=m;
+		ent_mass_list.add(em);
+		World.cur.gtree.update(em.x,em.y,em.m);
+	}
 	void updateEnts0(){
 		for(Entity e:ni_ents)if(e.active())e.update0();
 		for(Entity e:ents)if(e.active())e.update0();
 		for(Agent a:agents)if(a.active())a.update0();
 		genEnt();
+		
+		if(World.cur.gtree!=null){
+			if(ent_mass_list==null)ent_mass_list=new ArrayList<>();
+			for(EntMass em:ent_mass_list){
+				World.cur.gtree.update(em.x,em.y,-em.m);
+			}
+			ent_mass_list.clear();
+			for(Entity e:ents)addEntMass(e);
+			for(Entity e:agents)addEntMass(e);
+		}
 	}
 	void genEnt(){
 		World.cur.getMode().genEnt(this);
@@ -126,17 +156,18 @@ class Chunk implements Serializable{
 	}
 	void randomUpdateBlocks(){
 		double K=120;
-		int T=rf2i(World_Height*Chunk_Width/K);
+		int T=rf2i(World.cur.World_Height*Chunk_Width/K);
 		for(int t=0;t<T;++t){
 			int x=rndi(minX(),maxX()-1);
-			int y=rndi(0,World_Height-1);
+			int y=rndi(0,World.cur.World_Height-1);
 			World.cur.get(x,y).onUpdate(x,y);
 		}
 		
-		T=rf2i(World_Height*Chunk_Width/K/10);
+		T=rf2i(World.cur.World_Height*Chunk_Width/K/10);
+		if(World.cur.setting.enable_group_fall)
 		for(int t=0;t<T;++t){
 			int x=rndi(minX(),maxX()-1);
-			int y=rndi(0,World_Height-1);
+			int y=rndi(0,World.cur.World_Height-1);
 			GroupFall.apply(x,y);
 		}
 		
@@ -145,7 +176,7 @@ class Chunk implements Serializable{
 		for(int t=0;t<T;++t){
 			int x=rndi(minX(),maxX()-1);
 			double v=1;
-			for(int y=World_Height-1;y>=0&&v>0;--y){
+			for(int y=World.cur.World_Height-1;y>=0&&v>0;--y){
 				Block w=World.cur.get(x,y);
 				w.onLight(x,y,v);
 				v-=w.transparency();
@@ -212,11 +243,15 @@ class Chunk implements Serializable{
 
 class CompressedBlocks implements Serializable{
 	private static final long serialVersionUID=1844677L;
-	static byte[]_as=new byte[World_Height<<log_Chunk_Width];
-	static Block[]_bs=new Block[World_Height<<log_Chunk_Width];
+	static byte[]_as;
+	static Block[]_bs;
 	byte[]as;
 	Block[]bs;
+	int sz;
 	CompressedBlocks(Block[]b){
+		sz=b.length;
+		_as=new byte[sz];
+		_bs=new Block[sz];
 		int ap=0,bp=0;
 		for(int l=0,r=0;l<b.length;l=r){
 			for(++r;r<min(b.length,l+120)&&b[l]==b[r];++r);
@@ -231,7 +266,8 @@ class CompressedBlocks implements Serializable{
 		Arrays.fill(_bs,0,bp,null);
 	}
 	Block[] toBlockArray(){
-		Block[]b=new Block[World_Height<<log_Chunk_Width];
+		if(sz==0)sz=128<<log_Chunk_Width;
+		Block[]b=new Block[sz];
 		int p=0,bp=0;
 		for(int t0:as){
 			if(t0>0){

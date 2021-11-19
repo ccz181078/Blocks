@@ -7,6 +7,7 @@ import game.item.Item;
 public class StaticBlock extends CircuitBlock{
 	private static final long serialVersionUID=1844677L;
 	public StaticBlock(Block _block){super(_block);}
+	@Override
 	public Block deStatic(int x,int y){
 		Block b=(Block)block.clone();
 		World.cur.set(x,y,b);

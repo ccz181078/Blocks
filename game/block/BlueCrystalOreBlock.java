@@ -6,12 +6,11 @@ import util.BmpRes;
 import game.item.BlueCrystal;
 import game.world.World;
 
-public class BlueCrystalOreBlock extends StoneBlock{
+public class BlueCrystalOreBlock extends StoneBlock implements OreBlockType{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/BlueCrystalOreBlock");
 	public BmpRes getBmp(){return bmp;}
-	public void onDestroy(int x,int y){
-		super.onDestroy(x,y);
+	public void dropAt(int x,int y){
 		new BlueCrystal().drop(x,y,rndi(2,4));
 	}
 };

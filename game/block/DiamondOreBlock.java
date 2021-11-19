@@ -6,8 +6,7 @@ import util.BmpRes;
 import game.item.Diamond;
 import game.world.World;
 
-public class DiamondOreBlock extends StoneBlock{
-	private static final long serialVersionUID=1844677L;
+public class DiamondOreBlock extends StoneBlock implements OreBlockType{
 	static BmpRes bmp=new BmpRes("Block/DiamondOreBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 100;}
@@ -21,8 +20,7 @@ public class DiamondOreBlock extends StoneBlock{
 			super.onDestroy(x,y);
 		}
 	}
-	public void onDestroy(int x,int y){
-		super.onDestroy(x,y);
+	public void dropAt(int x,int y){
 		new Diamond().drop(x,y,rndi(2,4));
 	}
 };

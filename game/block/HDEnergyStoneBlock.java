@@ -11,6 +11,8 @@ private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/HDEnergyStoneBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 1000;}
+	public double getFallHp(){return 10;}
+	public int mass(){return 16;}
 	
 	public boolean circuitCanBePlaced(){return false;}
 	@Override
@@ -22,7 +24,7 @@ private static final long serialVersionUID=1844677L;
 	}
 	@Override
 	public void onDestroy(double x,double y){
-		EnergyExplodeBall.gen(x,y,SourceTool.make(SourceTool.block(f2i(x),f2i(y),this),"产生的"));
+		EnergyExplodeBall.gen(x,y,SourceTool.gen(SourceTool.block(f2i(x),f2i(y),this)));
 	}
 	@Override
 	protected int crackType(){return 0;}

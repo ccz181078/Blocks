@@ -58,26 +58,34 @@ private static final long serialVersionUID=1844677L;
 		r.onLaunch(w,y/x,mv2());
 		return Entity.endTest();
 	}
+	
+	public static void selectLaunchableItem(Human h,SingleItem rpg){
+		SingleItem ss[]=h.items.toArray(),w=null;
+		double sw=0;
+		for(int t=0;t<30;++t){
+			int id=rndi(0,ss.length-1);
+			SingleItem si=ss[id];
+			if(si.isEmpty())continue;
+			Item it=si.get();
+			if(it instanceof RPGLauncher)continue;
+			if(it.foodVal()>0)continue;
+			if(it instanceof LaunchableItem||it instanceof Warhead){
+				double s=it.launchValue();
+				sw+=s;
+				if(w==null||rnd()*sw<=s){
+					w=si;
+				}
+				//rpg.insert(si);
+			}
+		}
+		if(w!=null)rpg.insert(w);
+	}
 
 	@Override
 	public boolean autoShoot(Human h,Agent a){
 		h.items.insert(rpg);
 		if(!ready())return false;
-		if(rpg.isEmpty()){
-			SingleItem ss[]=h.items.toArray();
-			for(int t=0;t<30;++t){
-				int id=rndi(0,ss.length-1);
-				SingleItem si=ss[id];
-				if(si.isEmpty())continue;
-				Item it=si.get();
-				if(it instanceof RPGLauncher)continue;
-				if(it.foodVal()>0)continue;
-				if(it instanceof LaunchableItem||it instanceof Warhead){
-					rpg.insert(si);
-					break;
-				}
-			}
-		}
+		if(rpg.isEmpty())selectLaunchableItem(h,rpg);
 		if(rpg.isEmpty())return false;
 		Item it=rpg.get();
 		if(

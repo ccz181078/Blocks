@@ -15,11 +15,11 @@ public class GlassBlock extends StoneType{
 	double frictionIn1(){return 0.1;}
 	double frictionIn2(){return 0.1;}
 	public void onDestroy(int x,int y){}
-	@Override
+	/*@Override
 	public void onOverlap(int x,int y,Entity ent,double k){
 		super.onOverlap(x,y,ent,k);
 		int c=rf2i(k*10);
 		if(c>0)game.world.World.cur.get(x,y).des(x,y,c);
-	}
+	}*/
 	public double hardness(){return game.entity.NormalAttacker.QUARTZ;}
 };

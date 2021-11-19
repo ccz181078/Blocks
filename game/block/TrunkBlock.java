@@ -13,6 +13,8 @@ private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/TrunkBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 60;}
+	public int foodVal(){return 4;}
+	public int eatTime(){return 300;}
 	public int heatingTime(boolean in_furnace){return 100;}
 	public Item heatingProduct(boolean in_furnace){return new Coal();}
 	double friction(){return 0.2;}//内部

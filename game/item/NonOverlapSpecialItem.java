@@ -11,5 +11,5 @@ public class NonOverlapSpecialItem<T extends Item> extends SpecialItem<T>{
 		super(_type);
 		max_amount=cnt;
 	}
-	public int maxAmount(){return Math.max(1,max_amount);}
+	public int maxAmount(){return Math.min(super.maxAmount(),Math.max(1,max_amount));}
 }

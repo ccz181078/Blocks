@@ -25,7 +25,7 @@ public class ItemList_PvPMode extends ItemList{
 			cv.drawItemFrame((flag&SELECTED_FLAG)!=0);
 			if(si.isEmpty())return;
 			Item it=si.get();
-			double cost=res.getPrice(it);
+			double cost=res.getPrice(it,true);
 			cv.drawItem(it.getBmp(),(cost<=game.ui.UI.pl.money));
 			it.drawInfo(cv);
 			float sz=GlobalSetting.getGameSetting().text_size;
@@ -36,7 +36,7 @@ public class ItemList_PvPMode extends ItemList{
 		if(ic==null)return;
 		StatResult res=((PvPMode)World.cur.getMode()).getStat();
 		Item it=(Item)SerializeUtil.deepCopy(s.get());
-		double cost=res.getPrice(it);
+		double cost=res.getPrice(it,true);
 		int cnt=min((pl.batch_op?it.maxAmount():1),f2i(pl.money/cost));
 		SingleItem si=it.setAmount(cnt);
 		if(cnt>0)ic.insert(si);
@@ -48,7 +48,7 @@ public class ItemList_PvPMode extends ItemList{
 	
 	public void insert(SingleItem it){
 		StatResult res=((PvPMode)World.cur.getMode()).getStat();
-		double c=res.getPrice(it.get())*it.getAmount();
+		double c=res.getPrice(it.get(),false)*it.getAmount();
 		if(c>1e10)return;
 		game.ui.UI.pl.money+=c;
 		it.clear();

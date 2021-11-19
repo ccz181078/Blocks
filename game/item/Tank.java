@@ -72,7 +72,7 @@ public class Tank extends Vehicle{
 		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x,y,b,2*mv2());
 		loseEnergy(energyCost());
 	}
-	public int energyCost(){return 12;}
+	public int energyCost(){return 48;}
 	public Entity test_shoot(Human hu,double a,Item ammo){
 		Entity.beginTest();
 		double x=hu.x+1.6*cos(a),y=hu.y+0.23+1.6*sin(a);
@@ -84,6 +84,7 @@ public class Tank extends Vehicle{
 	public boolean onArmorLongPress(Human hu,double tx,double ty){
 		if(damage>7500)return true;
 		if(!hasEnergy(5))return true;
+		rot_time=5;
 		double xd=tx-hu.x,yd=ty-(hu.y+0.23),t=1;
 		if( mode == 1 ) t = 4;
 		if(rnd()<0.01){loseEnergy(1);damage+=1;}
@@ -95,13 +96,15 @@ public class Tank extends Vehicle{
 				a=b;
 				if(a<-0.15)a=-0.15;
 				if(a>PI+0.15)a=PI+0.15;
-				Item ammo = hu.items.getSelected().get();
-				if(ammo!=null)
-					if(ammo instanceof Bullet && gun_cd == 0)
-					{
-						shoot(hu,a,tan(a),false);
-						gun_cd = 8;
-					}
+				if(hu.getCarriedItem().getAmount()>1){
+					Item ammo = hu.items.getSelected().get();
+					if(ammo!=null)
+						if(ammo instanceof Bullet && gun_cd == 0)
+						{
+							shoot(hu,a,tan(a),false);
+							gun_cd = 8;
+						}
+				}
 			}
 			else if(b<a)a-=0.05*t;
 			else a+=0.05*t;
@@ -121,13 +124,15 @@ public class Tank extends Vehicle{
 	}
 	
 	public float maxReload(){
-		return 4;
+		return 5;
 	}
 	double max_vr=0;
 	int dir0=0;
 	boolean same_dir=false;
 	public double maxvr(){return same_dir?max_vr:0;}
 	public double frictionXr(){return 1;}
+
+	int rot_time=0;
 
 	public void onUpdate(Human w){
 		//World.showText("damage="+damage);
@@ -138,6 +143,20 @@ public class Tank extends Vehicle{
 		if(reload>maxReload()-(float)abs(w.xv)*7.5f)reload=maxReload()-(float)abs(w.xv)*7.5f;
 		if(reload<0)reload=0;
 		if(!checkEnergy(5,w))return;
+		
+		
+		{
+			if(rot_time>0){
+				--rot_time;
+				if(w.getCarriedItem().getAmount()!=1)rot_time=0;
+			}
+			if(rot_time>0){
+				double c=cos(a),s=sin(a),r=1.6;
+				double x=c*r,y=s*r+0.23;
+				updateRotatingItem(w,w.getCarriedItem(),x,y);
+			}
+		}
+		
 		if(w.xdir!=0&&dir0==w.xdir){
 			if(mode==1)max_vr+=0.004;
 			else max_vr+=0.02;
@@ -186,17 +205,17 @@ public class Tank extends Vehicle{
 		if(!hasEnergy(1))t*=3;
 		int v=rf2i(a.val);
 		if(a instanceof FireAttack){
-			damage+=a.val*0.7*t;
+			damage+=rf2i(a.val*0.7*t);
 			a.val*=0.006*t;
 		}else if(a instanceof DarkAttack){
-			damage+=a.val*t;
+			damage+=rf2i(a.val*t);
 			a.val*=0.03*t;
 			//game.entity.Text.gen(50,50,"a="+a.val,null);
 		}else if(a instanceof EnergyAttack){
-			damage+=a.val*0.9*t;
+			damage+=rf2i(a.val*0.9*t);
 			a.val=0;
 		}else{
-			damage+=rf2i(a.val*0.25*t*((NormalAttack)a).getWeight(this));
+			damage+=rf2i(a.val*0.2*t*((NormalAttack)a).getWeight(this));
 			a.val=0;
 		}
 		return super.transform(a);
@@ -220,11 +239,16 @@ public class Tank extends Vehicle{
 	}
 	@Override
 	public void touchAgent(Human w,Agent a){
-		a.onAttacked(max(0,w.v2rel(a)-0.05)*75,SourceTool.item(w,this),this);
+		a.onAttacked(max(0,w.v2rel(a)-0.05)*200,SourceTool.item(w,this),this);
 	}
 	
 	@Override
 	public void draw(graphics.Canvas cv,Human hu){
+		if(rot_time>0){
+			double c=cos(a),s=sin(a),r=1.6;
+			double x=c*r,y=s*r+0.23;
+			drawRotatingItem(cv,hu.getCarriedItem(),x,y);
+		}
 		cv.save();{
 			cv.translate(0,0.23f);
 			cv.rotate((float)(a*180/PI));

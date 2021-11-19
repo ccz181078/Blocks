@@ -12,6 +12,13 @@ import game.block.Block;
 
 public class Airship_Flank extends Agent{
 private static final long serialVersionUID=1844677L;
+	public boolean active(){
+		if(super.active()){
+			if(airship!=null)return airship.active();
+			return true;
+		}
+		return false;
+	}
 	public AirshipFlank af;
 	public Human airship=null;
 	public Airship_Flank(AirshipFlank af){
@@ -186,10 +193,7 @@ private static final long serialVersionUID=1844677L;
 	@Override
 	public BmpRes getBmp(){return af.getBmp();}
 	@Override
-	public void draw(graphics.Canvas cv){
-		if(dir==1)cv.scale(-1,1);
-		super.draw(cv);
-	}
+	public boolean drawRev(){return dir==1;}
 	@Override
 	void onKill(){
 		BmpRes bmp=af.getBmp();//getBmp();

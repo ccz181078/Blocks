@@ -24,9 +24,9 @@ public class SingleItem implements ShowableItemContainer,Cloneable,java.io.Seria
 		amount=0;
 	}
 	
-	public double getPrice(StatResult result){
+	public double getPrice(StatResult result,boolean is_max){
 		if(isEmpty())return 0;
-		double s=get().getPrice(result);
+		double s=get().getPrice(result,is_max);
 		if(s>1e8)s=0;
 		return s*getAmount();
 	}
@@ -102,6 +102,10 @@ public class SingleItem implements ShowableItemContainer,Cloneable,java.io.Seria
 	public boolean isEmpty(){
 		return amount==0;
 	}
+	public final void set(Item w,int cnt){
+		item=w;
+		amount=cnt;
+	}
 	public final int getAmount(){
 		return amount;
 	}
@@ -112,7 +116,7 @@ public class SingleItem implements ShowableItemContainer,Cloneable,java.io.Seria
 	protected boolean insertable(Item it){
 		if(it==null)return false;
 		if(isEmpty())return true;
-		return item.cmpType(it);
+		return item.cmpType(it)&&item.isEmpty()&&it.isEmpty();
 	}
 	
 	//把si中的物品转移到当前容器

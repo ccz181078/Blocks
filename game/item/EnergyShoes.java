@@ -25,7 +25,7 @@ public abstract class EnergyShoes extends Shoes implements DefaultEnergyContaine
 	
 	@Override
 	public double light(){return hasEnergy(1)?1:0;}
-	public void onUse(Human a){//按下使用按钮
+	/*public void onUse(Human a){//按下使用按钮
 		a.items.getSelected().insert(this);
 		if((a instanceof Player)){
 			((Player)a).openDialog(new game.ui.UI_Item(this,getItems()));
@@ -33,7 +33,7 @@ public abstract class EnergyShoes extends Shoes implements DefaultEnergyContaine
 	}
 	public BmpRes getUseBmp(){//获取使用按钮的贴图
 		return use_btn;
-	}
+	}*/
 	
 	/*extends EnergyTool*/
 	public SpecialItem<EnergyCell> ec=new SpecialItem<EnergyCell>(EnergyCell.class);

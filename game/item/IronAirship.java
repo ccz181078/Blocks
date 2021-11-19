@@ -56,3 +56,15 @@ public class IronAirship extends Airship{
 		super.onBroken(x,y,w);
 	}
 }
+
+class IronAirshipSmall extends IronAirship{
+	private static BmpRes bmp_armor=new BmpRes("Armor/AirshipSmall");
+	public BmpRes getBmp(){
+		return bmp_armor;
+	}
+	public double mass(){return 5;}
+	public double width(){return 0.5;}
+	public double height(){return 0.5;}
+	public int maxDamage(){return 16000;}
+	
+}

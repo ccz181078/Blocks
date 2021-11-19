@@ -8,8 +8,7 @@ public class ShockWaveLauncher extends EnergyLauncher{
 	public BmpRes getBmp(){return bmp;}
 	@Override
 	public int energyCost(){return 20;}
-	public double mv2(){return 0.01*0.1*0.1;}
+	public double mv2(){return 0.01*0.6*0.6;}
 	@Override
 	public game.entity.Entity getBall(){return new game.entity.ShockWave().setHpScale(2);}
 }
-

@@ -13,6 +13,7 @@ import game.item.Airship;
 import game.item.Shilka;
 import game.world.StatMode.StatResult;
 import game.GlobalSetting;
+import static java.lang.Math.*;
 
 public class UI_Info extends UI{
 	private static final long serialVersionUID=1844677L;
@@ -47,15 +48,15 @@ public class UI_Info extends UI{
 		float xp=(float)(pl.xp/pl.maxXp());
 		drawProgressBar(cv,0xffff0000,0xff770000,hp,0.1f,0.1f,1.9f,0.3f);
 		drawProgressBar(cv,0xff7fffff,0xff3f7f7f,xp,0.1f,0.4f,1.9f,0.6f);
-		drawProgressBar(cv,0xff0000ff,0xffffffff,pl.air_rate*0.01f,0.1f,0.7f,1.9f,0.9f);
+		drawProgressBar(cv,0xff0000ff,0xffffffff,(float)pl.air_rate/pl.maxAir(),0.1f,0.7f,1.9f,0.9f);
 		
 		if(World.cur.getMode() instanceof PvPMode){
 			PvPMode mode=(PvPMode)World.cur.getMode();
 			float sz=Math.min(GlobalSetting.getGameSetting().text_size,0.7f);
-			cv.drawText("$"+StatResult.getPriceString(pl.money)+"/$"+StatResult.getPriceString(pl.getPrice(mode.getStat())),sz*15f,1.2f,sz,1);
+			cv.drawText("$"+StatResult.getPriceString(pl.money)+"/$"+StatResult.getPriceString(pl.getPrice(mode.getStat()))+"  "+World.cur.getPlayers().length+"人在线",sz*15f,1.2f,sz,1);
 		}
 		float sz=Math.min(GlobalSetting.getGameSetting().text_size,0.7f);
-		cv.drawText(((int)pl.hp)+"/"+(int)pl.maxHp(),1f,0.3f,sz,0);
+		cv.drawText(((int)ceil(pl.hp))+"/"+(int)ceil(pl.maxHp()),1f,0.3f,sz,0);
 		if(World.cur.getMode() instanceof ECPvPMode){
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
 			cv.drawText("剩余"+mode.restPlayerCount()+"人,你击杀了"+pl.kill_cnt+"人",sz*20f,1.2f,sz,1);
@@ -68,11 +69,22 @@ public class UI_Info extends UI{
 			L=World.cur.getRelX(mode.nxt_l);
 			R=World.cur.getRelX(mode.nxt_r);
 			cv.drawRect(L*1.8f,0,R*1.8f,0.2f,0xff80b080);
+			float d=0.02f;
 			float w=World.cur.getRelX(mode.next_box_pos);
-			cv.drawRect(w*1.7f,0,w*1.9f,0.2f,mode.next_box_state==0?0x80ff00ff:0x80ffff00);
+			cv.drawRect(w*1.8f-d,0,w*1.8f+d,0.2f,mode.next_box_state==0?0x80ff00ff:0x80ffff00);
+			w=World.cur.getRelX(mode.next_box_pos_2);
+			cv.drawRect(w*1.8f-d,0,w*1.8f+d,0.2f,mode.next_box_state_2==0?0x80ff00ff:0x80ffff00);
+			
 			double xy[]=pl.getCamaraPos();
 			float x[]=new float[]{World.cur.getRelX(xy[0]),1-World.cur.getRelY(xy[1])};
 			cv.drawRect(x[0]*1.8f-0.05f,x[1]*0.2f-0.05f,x[0]*1.8f+0.05f,x[1]*0.2f+0.05f,0xff0000ff);
+			
+			for(game.entity.Human h:mode.getActivePlayers()){
+				if(h==pl)continue;
+				x=new float[]{World.cur.getRelX((float)h.x),1-World.cur.getRelY((float)h.y)};
+				cv.drawRect(x[0]*1.8f-d,x[1]*0.2f-d,x[0]*1.8f+d,x[1]*0.2f+d,0xff0080ff);
+			}
+			
 			if(!mode.airship.isRemoved()){
 				x=new float[]{World.cur.getRelX(mode.airship.x),1-World.cur.getRelY(mode.airship.y)};
 				cv.drawRect(x[0]*1.8f-0.05f,x[1]*0.2f-0.05f,x[0]*1.8f+0.05f,x[1]*0.2f+0.05f,0xff00ffff);

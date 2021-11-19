@@ -5,6 +5,7 @@ import game.entity.Entity;
 import game.entity.Agent;
 import game.entity.DroppedItem;
 import game.world.World;
+import game.world.Event;
 import java.util.ArrayList;
 import static util.MathUtil.*;
 
@@ -20,8 +21,13 @@ public class ItemAbsorber extends EnergyTool{
 				if(e instanceof DroppedItem){
 					DroppedItem d=(DroppedItem)e;
 					loseEnergy(1);
-					d.x=a.x;
-					d.y=a.y;
+					if(a instanceof DroppedItem.Picker){
+						new Event(){
+							public void run(){
+								((DroppedItem.Picker)a).pick(d);
+							}
+						}.addAfterMove();
+					}
 				}
 			}
 		}

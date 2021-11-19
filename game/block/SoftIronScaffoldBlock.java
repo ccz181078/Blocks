@@ -13,7 +13,7 @@ public class SoftIronScaffoldBlock extends StoneType{
 	int maxDamage(){return 1;}
 	public double transparency(){return 0.1;}
 	public void touchEnt(int x,int y,Entity ent){
-		if(min(y+1,ent.top)-max(y,ent.bottom)>0.1)ent.climbable=true;
+		onScaffoldTouchEnt(x,y,ent);
 		if(rnd()<0.001||ent.in_wall){
 			des(x,y,1);
 		}

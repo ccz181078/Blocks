@@ -18,6 +18,11 @@ public class UI_Item extends UI_ItemList{
 		for(SingleItem s:pl.items.toArray()){
 			if(s.get()==it)return true;
 		}
+		for(SingleItem s:pl.bag_items.toArray()){
+			if(s.get()==it)return true;
+		}
+		if(pl.armor.get()==it)return true;
+		if(pl.shoes.get()==it)return true;
 		return false;
 	}
 	protected void onDraw(Canvas cv){

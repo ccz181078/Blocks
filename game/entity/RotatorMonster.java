@@ -57,7 +57,7 @@ public class RotatorMonster extends SimpleAgent{
 	}
 
 	@Override
-	protected float getRotation(){
+	public float getRotation(){
 		return angle;
 	}
 	

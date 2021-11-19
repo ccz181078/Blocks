@@ -4,7 +4,7 @@ import util.BmpRes;
 import game.entity.Entity;
 import static util.MathUtil.*;
 
-public class Arrow extends LaunchableItem{
+public class Arrow extends ThrowableItem{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Item/Arrow"),bmps[]=BmpRes.load("Item/Arrow_",6);
 	public BmpRes getBmp(){return bmp;}
@@ -17,6 +17,7 @@ public class Arrow extends LaunchableItem{
 		return bmp;
 	}
 	
+	int energyCost(){return 1;}
 	@Override
 	protected Entity toEnt(){
 		return new game.entity.Arrow(this,null);

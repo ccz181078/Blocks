@@ -32,7 +32,7 @@ public class Mine extends Item implements BlockItem{
 	@Override
 	public boolean autoUse(Human h,Agent a){
 		double D=h.distLinf(a);
-		if(D>2&&D<5){
+		if(D>2&&D<4){
 			if(h.selectItem(Warhead.class,true)){
 				double x=a.x+a.width()*a.xdir,y=a.bottom;
 				if(World.cur.get(x,y).circuitCanBePlaced()){

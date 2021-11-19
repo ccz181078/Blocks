@@ -17,7 +17,7 @@ public class EnergyBallLauncher extends EnergyLauncher{
 	public BmpRes getBmp(){return bmp;}
 	public Entity getBall(){return new EnergyBall();}
 	public int energyCost(){return 5;}
-	public double mv2(){return 0.01*0.4*0.4;}
+	public double mv2(){return 0.01*0.7*0.7;}
 	int getCd(){return 8;}
 }
 

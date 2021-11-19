@@ -2,6 +2,7 @@
 *.dat
 *.jar
 *.stackdump
+*.log
 nul
 android
 build/data/

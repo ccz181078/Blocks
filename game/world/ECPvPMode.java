@@ -14,8 +14,8 @@ public class ECPvPMode extends GameMode{
 	private static final long serialVersionUID=1844677L;
 	public double cur_l,cur_r,nxt_l,nxt_r;
 	int getWorldWidth(){return HALF_WORLD_WIDTH*2;}
-	public double next_box_pos=0;
-	public int next_box_state=0;
+	public double next_box_pos=0,next_box_pos_2=0;
+	public int next_box_state=0,next_box_state_2=0;
 	@Override
 	public boolean forceOnline(){return true;}
 	int resourceRate(){
@@ -65,7 +65,7 @@ public class ECPvPMode extends GameMode{
 			if(it instanceof game.item.SpecialBullet||it instanceof game.item.FireBullet||it instanceof game.item.FlakBullet||it instanceof game.item.PathBullet||it instanceof game.item.GuidedBullet){
 				cnt+=f2i(rnd_exp(4));
 			}
-			else if(it instanceof game.item.APDSBullet){
+			else if(it instanceof game.item.APDSBullet||it instanceof game.item.HEAT_Bullet){
 				cnt+=f2i(rnd_exp(16));
 			}
 			else{
@@ -77,6 +77,9 @@ public class ECPvPMode extends GameMode{
 			if(it instanceof game.item.HeatBall&&rnd()>0.3)return;
 			if(it instanceof game.item.DarkIronBall&&rnd()>0.1)return;
 			cnt+=f2i(rnd_exp(1));
+			if(it instanceof game.item.SmallSpringBall){
+				cnt+=f2i(rnd_exp(2));
+			}
 		}
 		if(it instanceof game.item.RPGItem){
 			if(rnd()>0.2)return;
@@ -151,11 +154,16 @@ public class ECPvPMode extends GameMode{
 		nxt_l=cur_l+d*rnd(0.3);
 		nxt_r=nxt_l+d*0.7;
 	}
-	public static int HALF_WORLD_WIDTH=900,NUM_ZOMBIE=49,BUILDING_NUM=30,DROP_CNT=500;
+	public static int HALF_WORLD_WIDTH=800,NUM_ZOMBIE=49,BUILDING_NUM=30,DROP_CNT=500;
 	public static double V0=0.06;//0.067;
+	SingleItem init_items[]=new SingleItem[]{new EnergyStone().setAmount(1)};
 	void newWorld(World world){
-		cur_l=-HALF_WORLD_WIDTH;
-		cur_r=HALF_WORLD_WIDTH;
+		try{
+			byte[] bytes=util.SerializeUtil.readBytesFromFile(debug.Log.MAIN_DIR+"e.items");
+			init_items=(SingleItem[])util.SerializeUtil.bytes2obj(bytes);
+		}catch(Exception e){}
+		cur_l=-HALF_WORLD_WIDTH-64;
+		cur_r=HALF_WORLD_WIDTH+64;
 		initNextRange();
 		for(int ii=0;ii<BUILDING_NUM;++ii){
 			int width=rndi(6,10);
@@ -183,12 +191,14 @@ public class ECPvPMode extends GameMode{
 				b_window=new GlassBlock();
 			}else if(r<0.64)b=new CrystalBlock();
 			else if(r<0.7)b=new DiamondBlock();
-			else if(r<0.85)b=new GlassBlock();
+			else if(r<0.8)b=new GlassBlock();
+			else if(r<0.85)b=new HDBlock();
 			else if(r<0.9){
 				b=new IronNailBlock();
 				b_window=new GlassBlock();
 			}else if(r<0.96)b=new QuartzBlock();
 			else b=new ImprovedQuartzBlock();
+			door=new DoorBlock(b.clone());
 			b=new StaticBlock(b);
 			if(b_window!=null)b_window=new StaticBlock(b_window);
 			else b_window=b;
@@ -214,8 +224,8 @@ public class ECPvPMode extends GameMode{
 					fillBlock(x1+d,x2-d,y+i,y+i,air);
 					World.cur.set(ladder_x,y+i,ladder);
 					if(d<=2&&rnd()<0.4&&i>5&&i==last_ground+2){
-						fillBlock(x1,x1+d-1,y+i-1,y+i,door,true);
-						fillBlock(x2-d+1,x2,y+i-1,y+i,door,true);
+						fillBlock(x1,x1+d-1,y+i-1,y+i,door.clone(),true);
+						fillBlock(x2-d+1,x2,y+i-1,y+i,door.clone(),true);
 					}else if(i==last_ground+1&&i>2){
 						double c=0.5;
 						for(int t=0;t<3&&rnd()<c;++t)placeBox(x1+d+t,y+i);
@@ -244,8 +254,8 @@ public class ECPvPMode extends GameMode{
 			int door_d=min(d,2);//door
 			fillBlock(x1,x1+d-1,y1,y1+1,air);
 			fillBlock(x2-d+1,x2,y2,y2+1,air);
-			fillBlock(x1,x1+door_d-1,y1,y1+1,door,true);
-			fillBlock(x2-door_d+1,x2,y2,y2+1,door,true);
+			fillBlock(x1,x1+door_d-1,y1,y1+1,door.clone(),true);
+			fillBlock(x2-door_d+1,x2,y2,y2+1,door.clone(),true);
 			
 			//ladders under door
 			fillBlock(x1+door_d,x1+door_d,y,y1-1,ladder);
@@ -273,6 +283,7 @@ public class ECPvPMode extends GameMode{
 		a.af1.insert(new FastAirshipFlank());
 		a.af2.insert(new FastAirshipFlank());
 		airship=new ZombieRobot(0,0);
+		_airship=a;
 		airship.name="[qwq]";
 		airship.goal=airship.new ECAirship();
 		airship.armor.insert(a);
@@ -283,6 +294,7 @@ public class ECPvPMode extends GameMode{
 	}
 	ArrayList<Human> pls=new ArrayList<>(),dead_pls=new ArrayList<>();
 	public Zombie airship=null;
+	public Airship _airship=null;
 	public int restPlayerCount(){
 		int cnt=0;
 		for(Human hu:pls){
@@ -290,6 +302,12 @@ public class ECPvPMode extends GameMode{
 		}
 		return cnt;
 	}
+	public ArrayList<Human> getActivePlayers(){
+		ArrayList<Human> active_pls=new ArrayList<>();
+		for(Human h:pls)if(h.active())active_pls.add(h);
+		return active_pls;
+	}
+	int bound_tp=0;
 	long time=-1;
 	int wait=30*60;
 	boolean finished=false;
@@ -321,7 +339,7 @@ public class ECPvPMode extends GameMode{
 						for(Human w:pls){
 							AgentRefReadonly it=new AgentRefReadonly();
 							it.insert(InfiniteEnergyCell.full().setAmount(1));
-							it.agent=w;
+							it.agentref=World.getAgentRef(w);
 							it.drop(hu.x,hu.y,1);
 						}
 						hu.xv=hu.yv=0;
@@ -336,19 +354,24 @@ public class ECPvPMode extends GameMode{
 			}
 			if(time>=10&&restPlayerCount()<=1&&!finished){
 				finished=true;
-				cur_l=-HALF_WORLD_WIDTH;
-				cur_r=HALF_WORLD_WIDTH;
+				cur_l=-HALF_WORLD_WIDTH-64;
+				cur_r=HALF_WORLD_WIDTH+64;
 				World.showText("游戏结束！");
 			}
 			if(!finished){
-				if(rest_drop>0){
-					int x=(int)(cur_l+(rnd(cur_r-cur_l)+rnd(cur_r-cur_l))*0.5);
-					--rest_drop;
-					if(rnd()<0.5)drop(Craft._normal_tool,x,127);
-					else drop(Craft._throwable_item,x,127);
+				if(rest_drop>0&&!airship.dead&&rnd()<0.2){
+					//int x=(int)(cur_l+(rnd(cur_r-cur_l)+rnd(cur_r-cur_l))*0.5);
+					int x=rf2i(airship.x),y=f2i(airship.y-airship.height())-1;
+					double d=(x-cur_l)/(cur_r-cur_l);
+					d=min(d,1-d);
+					if(rnd()<d){
+						--rest_drop;
+						if(rnd()<0.5)drop(Craft._normal_tool,x,y);
+						else drop(Craft._throwable_item,x,y);
+					}
 				}
-				//if(rnd()<0.01)new ItemSlot().drop(rnd(cur_l,cur_r),127);
-				if(rnd()<0.002)new PlantEssence().drop(rnd(cur_l,cur_r),127);
+				//if(rnd()<0.01)new ItemSlot().drop(rnd(cur_l,cur_r),World.cur.getMaxY());
+				if(rnd()<0.002)new PlantEssence().drop(rnd(cur_l,cur_r),World.cur.getMaxY());
 				if(wait>0)--wait;
 				else{
 					cur_l=min(nxt_l,cur_l+V0);
@@ -360,14 +383,62 @@ public class ECPvPMode extends GameMode{
 				}
 			}
 		}
+		_airship.damage=0;
+		_airship.af1.insert(new FastAirshipFlank());
+		_airship.af2.insert(new FastAirshipFlank());
 		if(World.cur.time%10==0){
 			for(Agent a:chunk.agents){
 				if(!a.active())continue;
-				if(a.left<cur_l||a.right>cur_r||a.top>World.World_Height||a.bottom<0){
-					BloodBall.drop(a,0.5,SourceTool.OUT);
+				if(a==airship)continue;
+				if(!a.hasBlood())continue;
+				if(a.left<cur_l||a.right>cur_r||a.top>World.cur.getMaxY()+1+0.3||a.bottom<-0.3){
+					switch(bound_tp){
+						case 0:
+							BloodBall.drop(a,0.5,SourceTool.OUT);
+							break;
+						case 1:{
+							a.onAttackedByDark(5,SourceTool.OUT);
+							if(rnd()<0.1){
+								int x;
+								if(a.left<cur_l||a.right>cur_r){
+									double d=cur_r-cur_l;
+									double x0=min(d,rnd_exp(d/16));
+									if(a.left<cur_l){
+										x0=cur_l+x0;
+									}else{
+										x0=cur_r-x0;
+									}
+									x=rf2i(x0);
+								}else{
+									x=rf2i(a.x);
+								}
+								float rx=World.cur.getRelX(x);
+								if(max(rx,1-rx)>0.01f){
+									int y=World.cur.getGroundY(x);
+									new SetRelPos(a,null,x+0.5,y+a.height());
+								}
+							}
+							break;
+						}
+						case 2:{
+							break;
+						}
+						case 3:{
+							break;
+						}
+						case 4:{
+							break;
+						}
+					}
 				}
 			}
 		}
+	}
+	
+	int getFieldColor(){
+		if(bound_tp==0)return 0xffff0000;
+		if(bound_tp==1)return 0xffff00ff;
+		return 0;
 	}
 	
 	@Override
@@ -382,7 +453,8 @@ public class ECPvPMode extends GameMode{
 		initHuman(player);
 	}
 	void initHuman(Human hu){
-		hu.items.insert(new EnergyStone().setAmount(1));
+		for(SingleItem si:SerializeUtil.deepCopy(init_items))hu.items.insert(si);
+		//hu.items.insert(new EnergyStone().setAmount(1));
 		hu.locked=true;
 		hu.dead=false;
 		hu.kill_cnt=0;
@@ -401,7 +473,8 @@ public class ECPvPMode extends GameMode{
 			//hu.items.insert(new EnergyStoneShield().setAmount(1));
 			//hu.items.insert(new Mine().setAmount(4));
 			//hu.items.insert(new game.item.HandGrenade().setAmount(16));
-			
+			//for(int i=0;i<1;++i)
+			//hu.items.insert(new game.item.SmallSpringBall(i).setAmount(99));
 			//hu.items.insert(new game.item.GuidedBullet().setAmount(99));
 			//hu.items.insert(new SpecialBullet(4).setAmount(99));
 			//hu.items.insert(new SpecialBullet(4).setAmount(99));
@@ -422,6 +495,9 @@ public class ECPvPMode extends GameMode{
 			//hu.items.insert(new game.item.Bullet().setAmount(99));
 			//hu.items.insert(new game.item.Bullet().setAmount(99));
 			//hu.items.insert(new game.item.Bullet().setAmount(99));
+			//hu.items.insert(new game.item.APDSBullet().setAmount(99));
+			//hu.items.insert(new game.item.APDSBullet().setAmount(99));
+			//hu.items.insert(new game.item.APDSBullet().setAmount(99));
 			//hu.items.insert(new HighEnergyShockWaveLauncher().setAmount(1));
 			//hu.items.insert(new HighEnergyFireLauncher().setAmount(1));
 			
@@ -440,19 +516,20 @@ public class ECPvPMode extends GameMode{
 			//hu.items.insert(BlueCrystalEnergyCell.full().setAmount(1));
 			//hu.items.insert(BlueCrystalEnergyCell.full().setAmount(1));
 			//hu.items.insert(BlueCrystalEnergyCell.full().setAmount(1));
+			//hu.items.insert(BlueCrystalEnergyCell.full().setAmount(1));
 		//}
 		if(airship.dead)hu.hp=0;
 	}
 	public void onHumanDead(Human w){
-		int px=f2i(w.x-0.5),py=max(0,min(127,f2i(w.y-1)));
-		BoxShield box=new BoxShield();
+		int px=f2i(w.x-0.5),py=max(0,min(World.cur.getMaxY(),f2i(w.y-1)));
+		BoxShield box=new DeadHumanBoxShield();
 		boolean cnt=false;
 		for(SingleItem si:w.items.toArray())box.insert(si);
 		for(SingleItem si:w.bag_items.toArray())box.insert(si);
 		new ZombieCrystal().drop(w.x,w.y,2);
 		w.dropItems();
 		pls.remove(w);
-		box.ent.initPos(w.x,w.y,w.xv,w.yv,SourceTool.make(w,"死后生成的")).add();
+		box.ent.initPos(w.x,w.y,w.xv,w.yv,SourceTool.dropOnDead(w)).add();
 	}
 	public void onZombieDead(Zombie w){
 		onHumanDead(w);

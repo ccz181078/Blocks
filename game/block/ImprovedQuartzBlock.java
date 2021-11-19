@@ -11,4 +11,6 @@ public class ImprovedQuartzBlock extends QuartzBlock{
 		super.onDestroy(x,y);
 		if(rnd()*4<1)new game.item.Iron().drop(x,y);
 	}
+	public void onLight(int x,int y,double v){}
+	
 };

@@ -10,6 +10,7 @@ private static final long serialVersionUID=1844677L;
 		super();
 		hp=250;
 	}
+	public boolean shouldKeepAwayFrom(){return true;}
 	
 	boolean exploded=false;
 	void explode(){

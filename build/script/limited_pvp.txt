@@ -1,0 +1,3 @@
+World.cur.setting.enable_craft=false
+World.cur.setting.enable_high_tech=false
+

@@ -3,7 +3,8 @@ package game.item;
 import static util.MathUtil.*;
 import util.BmpRes;
 import game.entity.*;
-import game.world.World;
+import game.world.*;
+import game.world.StatMode.StatResult;
 import game.block.*;
 
 public abstract class LambdaNode extends Item{
@@ -136,12 +137,23 @@ class Copy extends Item{
 	static BmpRes bmp=new BmpRes("Item/Copy");
 	public BmpRes getBmp(){return bmp;}
 	@Override
+	public double getPrice(StatResult result,boolean is_max){
+		return 0;
+	}
+	@Override
 	public int maxAmount(){return 1;}
 	@Override
 	public boolean isCreative(){return true;}
 	public boolean onDragTo(SingleItem src,SingleItem dst,boolean batch){
 		if(src.isEmpty())return false;
 		if(dst.getAmount()!=1)return false;
+		if(World.cur.getMode() instanceof PvPMode){
+			StatResult res=((PvPMode)World.cur.getMode()).getStat();
+			double cost=res.getPrice(src.get(),true);
+			if(game.ui.UI.pl.money>=cost){
+				game.ui.UI.pl.money-=cost;
+			}else return false;
+		}
 		Item w=(Item)util.SerializeUtil.deepCopy(src.get());
 		dst.pop();
 		dst.insert(w.setAmount(1));

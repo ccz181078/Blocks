@@ -21,7 +21,7 @@ public class SpecialBullet extends Bullet{
 	public BmpRes getBmp(){return Bullet.bmp[tp];}
 	public void touchEnt(game.entity.Bullet self,Entity ent){
 		if(tp==1){
-			new FocusedEnergy().initPos(self.x,self.y,self.xv,self.yv,SourceTool.make(self,"产生的")).add();
+			new FocusedEnergy().initPos(self.x,self.y,self.xv,self.yv,SourceTool.gen(self)).add();
 		}
 		if(tp==2)Spark.explode(self.x,self.y,ent.xv,ent.yv,1,0,3,self,true,0,false);
 		if(tp==3)ent.onAttackedByDark(120,self);

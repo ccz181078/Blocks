@@ -28,7 +28,7 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 	public Block clone(){return (Block)super.clone();}
 	
 	public boolean chkNonRigidEnt(){return false;}
-	public double mass(){return 1;}
+	public int mass(){return isCoverable()?0:1;}
 	/*//item
 	//和物品相关的部分
 	
@@ -58,8 +58,9 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 	
 	//
 	public double impactValue(){return max(0,min(100,maxDamage()*0.3));}
-	public double fallValue(){return max(0,maxDamage()-damage)*0.01+0.25;}
+	public double fallValue(){return max(0,maxDamage()-damage)*0.01+2;}
 	int maxDamage(){return 100000000;}
+	public double maxHp(){return maxDamage();}
 	public double transparency(){return 1;}
 	public double light(){return 0;}
 	public boolean isCoverable(){return false;}//return whether you can place a block on the position of "this"
@@ -74,7 +75,9 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 		return false;
 	}
 	public boolean updateCond(int x,int y){return false;}
-	
+	public Block deStatic(int x,int y){
+		return this;
+	}
 	//called when a block appears or disappears
 	//check block state
 	//called at most once per World.update
@@ -85,7 +88,7 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 	//返回方块是否被移除
 	public boolean onCheck(int x,int y){
 		if(damage>=maxDamage()){
-			World.cur.setAir(x,y);
+			World.cur.setVoid(x,y);
 			onDestroy(x,y);
 			return true;
 		}
@@ -246,11 +249,18 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 	}
 	
 	public void onOverlap(int x,int y,Entity ent,double k){
-		ent.fs=max(ent.fs,frictionIn1());
+		ent.fs=max(ent.fs,frictionIn1()/max(1,ent.mass()));
 		ent.fc+=k*frictionIn2()/ent.mass();
 		//ent.f+=k*frictionIn();
 		//ent.inblock+=1;
 		//ent.anti_g+=1;
+		double x1=max(x,ent.left),x2=min(x+1,ent.right);
+		double y1=max(y,ent.bottom),y2=min(y+1,ent.top);
+		double x0=rnd(x1,x2),y0=rnd(y1,y2);
+		double rxv=ent.xvAt(x0,y0);
+		double ryv=ent.yvAt(x0,y0);
+		k*=0.5*ent.mass()*min(1,frictionIn2());
+		ent.impulse(x0,y0,rxv,ryv,-k);
 	}
 	@Override
 	public Entity asEnt(){
@@ -261,10 +271,13 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 		return !isDeep();
 	}
 	public void fall(int x,int y,double xmv,double ymv){
-		World.cur.setAir(x,y);
-		if(fallable())new FallingBlock(x,y,this).initPos(x+0.5,y+0.5,xmv,ymv,null).add();
-		else onDestroy(x,y);
+		World.cur.setVoid(x,y);
+		if(fallable()){
+			double m=mass();
+			new FallingBlock(x,y,this).initPos(x+0.5,y+0.5,xmv/m,ymv/m,null).add();
+		}else onDestroy(x,y);
 	}
+	public double getFallHp(){return 100;}
 	//与实体进行刚体碰撞测试
 	public final void rigidBodyHitTest(int x,int y,Entity ent){
 		if(ent.in_wall)return;
@@ -391,6 +404,16 @@ public abstract class Block extends Item implements BlockItem,NormalAttacker{
 		return true;
 	}
 	public boolean xRev(){return false;}
+	
+	static void onLadderTouchEnt(int x,int y,Entity ent){
+		double xd=x+0.5-ent.x,yd=y+0.5-ent.y;//relative position
+		double W=0.45+ent.width(),H=0.45+ent.height();
+		if(ent instanceof Agent && ((Agent)ent).ydir!=-1 && max(abs(xd)-W,abs(yd)-H)<0)ent.climbable=true;
+	}
+	static void onScaffoldTouchEnt(int x,int y,Entity ent){
+		double h=min(y+1,ent.top)-max(y,ent.bottom);
+		if(h>0.051)ent.climbable=true;
+	}
 };
 
 abstract class AirType extends Block{

@@ -49,7 +49,7 @@ public class Tank_HEATFS extends RPG{
 		}
 	}
 	public void explode(){
-		explodeDirected(new HE_FireBall(),32,0.5,1,0.8);
+		explodeDirected(new HE_FireBall(),32,0.5,1,0.05,0.8);
 		explode_targeted(64);
 		Spark.explode(x,y,0,0,20,0.1,1,this);
 		ShockWave.explode(x,y,0,0,32,0.1,0.4,this);

@@ -11,6 +11,7 @@ private static final long serialVersionUID=1844677L;
 		hp=2000;
 	}
 	public double mass(){return 1;}
+	public boolean shouldKeepAwayFrom(){return true;}
 	
 	public void touchAgent(Agent a){
 		if(hp<=0||a.hp<=0)return;

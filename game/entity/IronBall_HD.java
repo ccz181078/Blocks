@@ -10,6 +10,9 @@ private static final long serialVersionUID=1844677L;
 		super();
 		hp=3000;
 	}
+	protected void drop(){
+		new game.item.IronBall_HD().drop(x,y);
+	}
 	public boolean chkBlock(){return false;}//是否与方块接触
 	public boolean chkRigidBody(){return sqrt(xv*xv+yv*yv)<0.2;}//是否与方块进行刚体碰撞检测
 	public boolean chkAgent(){return true;}//是否与Agent接触

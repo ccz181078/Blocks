@@ -43,8 +43,49 @@ public class NearbyInfo implements java.io.Serializable{
 		return light;
 	}
 	
+	int[][] calcMassField(){
+		final int C=2;
+		int xl=(int)floor(mx-xd)-C,xr=(int)floor(mx+xd)+C;
+		int yl=(int)floor(my-yd)-C,yr=(int)floor(my+yd)+C;
+		
+		double light[][]=new double[yr-yl+1][xr-xl+1];
+		
+		for(Entity e:ents){
+			int x0=f2i(e.left),x1=f2i(e.right);
+			int y0=f2i(e.bottom),y1=f2i(e.top);
+			double m=e.mass();
+			for(int x=max(xl,x0);x<=min(xr,x1);++x)
+			for(int y=max(yl,y0);y<=min(yr,y1);++y){
+				double k=(min(e.right,x+1)-max(e.left,x))*(min(e.top,y+1)-max(e.bottom,y))/(e.V+1e-300);
+				light[y-yl][x-xl]+=k*m;
+			}
+		}
+		for(Agent e:agents){
+			int x0=f2i(e.left),x1=f2i(e.right);
+			int y0=f2i(e.bottom),y1=f2i(e.top);
+			double m=e.mass();
+			for(int x=max(xl,x0);x<=min(xr,x1);++x)
+			for(int y=max(yl,y0);y<=min(yr,y1);++y){
+				double k=(min(e.right,x+1)-max(e.left,x))*(min(e.top,y+1)-max(e.bottom,y))/(e.V+1e-300);
+				light[y-yl][x-xl]+=k*m;
+			}
+		}
+		
+		int int_light[][]=new int[yr-yl+1-C*2][xr-xl+1-C*2];
+		for(int y=yl+C;y<=yr-C;++y){
+			for(int x=xl+C;x<=xr-C;++x){
+				double m=light[y-yl][x-xl];
+				m+=World.cur.get(x,y).mass();
+				int c=max(0,min(255,f2i(m/(World.cur.setting.mass_field_clip)*256)));
+				int_light[y-yl-C][x-xl-C]=255-c;
+			}
+		}
+		return int_light;
+	}
+	
 	//compute light for player
 	int[][] calcLight(){
+		if(World.cur.setting.show_mass_field)return calcMassField();
 		final int C=2;
 		int xl=(int)floor(mx-xd)-C,xr=(int)floor(mx+xd)+C;
 		int yl=(int)floor(my-yd)-C,yr=(int)floor(my+yd)+C;
@@ -61,7 +102,7 @@ public class NearbyInfo implements java.io.Serializable{
 		for(int x=xl;x<=xr;++x){
 			light0[x-xl]=light00;
 		}
-		for(int y=World.World_Height-1;y>yr;--y){
+		for(int y=World.cur.getMaxY();y>yr;--y){
 			for(int x=xl;x<=xr;++x){
 				light0[x-xl]+=World.cur.get(x,y).transparency();
 			}
@@ -69,7 +110,7 @@ public class NearbyInfo implements java.io.Serializable{
 		
 		
 		double light[][]=new double[yr-yl+1][xr-xl+1];
-		int y1=max(yl,min(yr,World.World_Height-1));
+		int y1=max(yl,min(yr,World.cur.getMaxY()));
 		for(int y=yr;y>=yl;--y){
 			for(int x=xl;x<=xr;++x){
 				light[y-yl][x-xl]=light0[x-xl];
@@ -149,7 +190,7 @@ public class NearbyInfo implements java.io.Serializable{
 		
 		cv.save();
 		cv.scale(12/BW,12/BW);
-		cv.rotate(pl.getRotation());
+		cv.rotate(pl.getViewRotation());
 
 		cv.drawColor(World.cur.sky_color);
 		
@@ -168,10 +209,12 @@ public class NearbyInfo implements java.io.Serializable{
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
 			float x0=(float)(mode.cur_l-mx);
 			float x1=(float)(mode.cur_r-mx);
-			cv.drawRect(x0-4000,-128,x0,128,0xffff0000);
-			cv.drawRect(x1,-128,x1+4000,128,0xffff0000);
+			int color=mode.getFieldColor();
+			cv.drawRect(x0-4000,-128,x0,128,color);
+			cv.drawRect(x1,-128,x1+4000,128,color);
 		}
 		
+		if(World.cur.setting.show_agents)
 		for(Agent a:agents){
 			if(a.shadowed)continue;
 			Pose p=a.getPose(mx,my);
@@ -188,6 +231,7 @@ public class NearbyInfo implements java.io.Serializable{
 		}
 		
 		
+		if(World.cur.setting.show_ents)
 		for(Entity e:ents){
 			if(e.shadowed)continue;
 			Pose p=e.getPose(mx,my);
@@ -238,14 +282,14 @@ public class NearbyInfo implements java.io.Serializable{
 		for(int y=0;y<y_max;++y){
 			Block[] b=blocks[y];
 			for(int x=0;x<x_max;++x){
-				if(pl.suspend_mode&&!gs.light_in_suspend_mode)light[y][x]=0;
+				if(pl.suspend_mode&&!gs.light_in_suspend_mode||!World.cur.setting.enable_light)light[y][x]=0;
 				if(!(pl.creative_mode&&pl.suspend_mode))
 				if(b[x].rootBlock() instanceof StoneBlock&&light[y][x]>127){
 					if(!World.cur.destroyable(xl+x,yl+y)){
 						b[x]=((StoneBlock)(b[x].rootBlock())).toStone();
 					}
 				}
-				if(light[y][x]<255)b[x].draw(cv);
+				if(light[y][x]<255&&World.cur.setting.show_blocks)b[x].draw(cv);
 				//cv.drawRect(light[y][x]<<24);
 				if(cols[y][x])cv.drawRect(0x3fffffff);
 				cv.gridNext();

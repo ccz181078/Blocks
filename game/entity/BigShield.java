@@ -70,12 +70,8 @@ public class BigShield extends Agent implements DroppedItem.Picker{
 		super.update();
 		shield.update();
 	}
-	public void draw(graphics.Canvas cv){
-		cv.save();
-		if(dir==-1)cv.scale(-1,1);
-		super.draw(cv);
-		cv.restore();
-	}
+	@Override
+	public boolean drawRev(){return dir==-1;}
 	@Override
 	public boolean chkBlock(){return true;}
 	public boolean chkEnt(){return true;}

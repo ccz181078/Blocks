@@ -97,7 +97,7 @@ private static final long serialVersionUID=1844677L;
 			double yd=target.y+tyv*tc-(y+yv*c);
 			d=hypot(xd,yd)+1e-8;
 			xdir=ydir=0;
-			Line.gen(x,y,x+xd,y+yd);
+			//Line.gen(x,y,x+xd,y+yd);
 			if(abs(xd)>rnd(d))xdir=(xd>0?1:-1);
 			if(abs(yd)>rnd(d))ydir=(yd>0?1:-1);
 		}

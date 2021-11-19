@@ -64,18 +64,20 @@ public class FlakGun extends Pipeline_5{
 		
 		Item ammo = bullet_src.popItem();
 		cd=getCd(hu.xv*hu.xv+hu.yv*hu.yv,ammo);
-		double x=hu.x+1.6*cos(a)-0.15*(cnt-3)*sin(a),y=hu.y+0.15*(cnt-3)*cos(a)+1.6*sin(a)+0.23 , t = 0;
+		double x=ec.getShootX(hu,a,cnt);
+		double y=ec.getShootY(hu,a,cnt);
+		double t=0;
 		if( ammo instanceof Warhead ) t = 0.4;
 		
-		if( !( ammo instanceof PathBullet ) && !( ammo instanceof GuidedBullet ) )
+		/*if( !( ammo instanceof PathBullet ) && !( ammo instanceof GuidedBullet ) )
 		{
 			Spark s=new Spark(0,0);
 			s.initPos(x+0.25*cos(a),y+0.25*sin(a),cos(a)*0.5+hu.xv,sin(a)*0.5+hu.yv,hu);
 			s.hp*=0.3;
 			s.add();
-		}
+		}*/
 		
-		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x+t*cos(a),y+t*sin(a),b,mv2());
+		ammo.onLaunchAtPos(hu,abs(a)>PI/2?-1:1,x+t*cos(a),y+t*sin(a),b,1.2*mv2());
 		ec.loseEnergy(energyCost());
 	}
 	@Override
@@ -83,7 +85,7 @@ public class FlakGun extends Pipeline_5{
 		if(cd>0)return;
 		double x=hu.x+1.6*cos(a)-0.15*(next[cnt]-3)*sin(a),y=hu.y+0.15*(cnt-3)*cos(a)+1.6*sin(a)+0.23 , t = 0;
 		if( ammo instanceof Warhead ) t = 0.4;
-		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x+t*cos(a),y+t*sin(a),b,mv2());
+		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x+t*cos(a),y+t*sin(a),b,1.2*mv2());
 	}
 		
 	float reload=0,q=1;

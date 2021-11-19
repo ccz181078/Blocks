@@ -23,6 +23,14 @@ public class RPG_HD extends RPG_Guided{
 		}
 	}
 	public void explode(){
+		Source src=SourceTool.explode(this);
+		for(int i=0;i<3;++i){
+			double a=i*(PI*2./3.)+atan2(yv,xv);
+			double c=cos(a),s=sin(a);
+			Entity e=new Bullet(new game.item.Bullet_HD());
+			e.initPos(x+c*0.5,y+s*0.5,c*2,s*2,src);
+			e.add();
+		}
 		super.explode();
 	}
 }

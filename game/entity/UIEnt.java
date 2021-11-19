@@ -47,7 +47,8 @@ public class UIEnt extends Entity{
 		
 	}
 }
-class WorldEntryEnt extends UIEnt{
+
+/*class WorldEntryEnt extends UIEnt{
 	public double width(){return 1;}
 	public double height(){return 0.4;}
 	String text(){return world_name;}
@@ -56,14 +57,10 @@ class WorldEntryEnt extends UIEnt{
 		world_name=name;
 	}
 	public void onClick(){
-		try{
-			World.save();
-			String path=debug.Log.MAIN_DIR+world_name+debug.Log.FILE_PATH_SEPARATOR;
-			World.restore(path);
-			World.cur.save_path=debug.Log.MAIN_DIR+"__tmp__"+debug.Log.FILE_PATH_SEPARATOR;
-			World.cur.restart();
-		}catch(Exception e){
-			debug.Log.i(e);
-		}
+		Main.runOnUpdateThread(()->{
+			if(ut.restoreWorld(world_name)){
+				ut.startGame();
+			}
+		});
 	}
-}
+}*/

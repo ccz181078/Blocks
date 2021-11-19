@@ -15,7 +15,7 @@ public class ExplosiveBox extends Vehicle{
 	public BmpRes getArmorBmp(){
 		return bmp;
 	}
-	public SingleItem ex=new SingleItem();
+	public SingleItem ex=new NonOverlapSpecialItem<Item>(Item.class,16);
 	public ShowableItemContainer getItems(){return ItemList.create(ec,ex);}
 	
 	public int maxDamage(){return 3000;}
@@ -24,16 +24,20 @@ public class ExplosiveBox extends Vehicle{
 	public double width(){return 0.6;}
 	public double height(){return 0.6;}
 	
+	private void explode(Human a,double tx,double ty){
+		Source src=SourceTool.item(this);
+		Item it=ex.get();
+		if(it!=null)it.onExplode(a,tx,ty,ex.getAmount(),src);
+		ex.clear();
+		a.armor.popItem();
+		a.teleporting=true;
+		new TeleportationEvent(a,new TeleportationSquare());
+	}
+	
 	public boolean onArmorClick(Human a,double tx,double ty){
 		if( abs(tx-a.x) < width() && abs(ty-a.y) < height() ) {
 			damage=maxDamage();
-			Source src=SourceTool.item(this);
-			Item it=ex.get();
-			if(it!=null)it.onExplode(a,tx,ty,ex.getAmount(),src);
-			ex.clear();
-			a.armor.popItem();
-			a.teleporting=true;
-			new TeleportationEvent(a,new TeleportationSquare());
+			explode(a,tx,ty);
 			return true;
 		}
 		return false;
@@ -84,6 +88,10 @@ public class ExplosiveBox extends Vehicle{
 		v=max(0,v-100)*0.2;
 		damage+=rf2i(v);
 		return v;
+	}
+	public void onBroken(double x,double y,Agent a){
+		if(a instanceof Human)explode((Human)a,a.x+rnd_gaussion(),a.y+rnd_gaussion());
+		super.onBroken(x,y,a);
 	}
 	public void onBroken(double x,double y){
 		new Iron().drop(x,y,util.MathUtil.rndi(10,20));

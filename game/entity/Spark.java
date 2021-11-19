@@ -82,8 +82,10 @@ public class Spark extends Entity{
 	void touchEnt(Entity ent,boolean chk_ent){
 		if(ent instanceof ShockWave)return;
 		if(ent instanceof Spark){
-			if(distL2(ent)<0.2)if(((Spark)ent).t>t){
+			if(distL2(ent)<0.4)if(((Spark)ent).t>t){
 				shadowed=true;
+				ent.hp+=hp/2;
+				hp-=hp/2;
 				this.chk_ent=false;
 			}
 			return;
@@ -95,7 +97,7 @@ public class Spark extends Entity{
 	public void touchBlock(int px,int py,Block b){
 		b.onFireUp(px,py);
 		b.onBurn(px,py);
-		if(!b.isCoverable()&&b.fuelVal()==0)hp-=5;
+		//if(!b.isCoverable()&&b.fuelVal()==0)hp-=5;
 	}
 
 	public boolean chkEnt(){return chk_ent;}
@@ -143,7 +145,7 @@ public class Spark extends Entity{
 		if(num>=5)src=SourceTool.explode(src);
 		else{
 			if(src==null)debug.Log.printStackTrace();
-			src=SourceTool.make(src,"产生的");
+			src=SourceTool.gen(src);
 		}
 		for(int i=0;i<num;++i){
 			double x1=rnd_gaussion()*v,y1=rnd_gaussion()*v;

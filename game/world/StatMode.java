@@ -49,6 +49,14 @@ public class StatMode extends GameMode{
 		private HashMap<Class,ArrayList<ItemInfo>> mp=new HashMap<>();
 		
 		public ItemInfo get(Item item,boolean ins){
+			if(!World.cur.setting.enable_high_tech)
+			if(item instanceof EnergyArmor
+			|| item instanceof TeleportationStick
+			|| item instanceof TeleportationSquare
+			|| item instanceof game.item.GuidedBullet
+			|| item instanceof game.item.RPG_Guided
+			|| item instanceof game.item.AgentMaker
+			)return null;
 			Class c=item.getClass();
 			if(!mp.containsKey(c))mp.put(c,new ArrayList<ItemInfo>());
 			ArrayList<ItemInfo> ls=mp.get(c);
@@ -86,11 +94,15 @@ public class StatMode extends GameMode{
 			Craft cs[]=Craft.getAll(0xffffffff);
 			get(new Grass(),true).mul(1000);
 			get(new CactusBlock(),true).mul(0.3);
-			get(new LeafBlock(0),true).mul(1000);
+			get(new LeafBlock(0),true).mul(10);
 			get(new Algae(),true).mul(100);
 			get(new AquaticGrass(),true).mul(100);
 			get(WaterBlock.getInstance(),true).mul(1000);
 			get(LavaBlock.getInstance(),true).mul(1000);
+			get(new BloodEssence(),true).mul(0.1);
+			get(new BloodEssence(),true).update(20);
+			get(new game.item.DarkBall(),true).mul(0.1);
+			get(new game.item.DarkBall(),true).update(10);
 			
 			double unit=get(new EnergyStone(),true).cost;
 			for(Map.Entry<Class,ArrayList<ItemInfo>> entry:new HashMap<>(mp).entrySet()){
@@ -125,9 +137,9 @@ public class StatMode extends GameMode{
 			if(ii==null)return 1e40;
 			return ii.cost;
 		}
-		public double getPrice(Item i){
-			if(i==null)return 1e40;
-			return i.getPrice(this);
+		public double getPrice(Item i,boolean is_max){
+			if(i==null)return is_max?1e40:0;
+			return i.getPrice(this,is_max);
 		}
 		public static String getPriceString(double cost){
 			if(cost>1e10)return "inf";
@@ -136,7 +148,7 @@ public class StatMode extends GameMode{
 		public void print(Item[] items){
 			System.out.println("---------------------");
 			for(Item i:items){
-				System.out.println(i.getName()+":\t"+getPriceString(getPrice(i)));
+				System.out.println(i.getName()+":\t"+getPriceString(getPrice(i,true)));
 			}
 		}
 		public void print(){
@@ -186,6 +198,7 @@ public class StatMode extends GameMode{
 			oos.close();
 			bos.close();
 			os.close();
+			result.update();
 		}catch(Exception e){debug.Log.i(e);}
 		return result;
 	}
@@ -222,7 +235,7 @@ public class StatMode extends GameMode{
 		}
 		for(int i=0;i<10;++i){
 			int x=rndi(chunk.minX(),chunk.maxX()-1);
-			int y=rndi(0,World_Height-1);
+			int y=rndi(0,World.cur.getMaxY());
 			if(i<2){
 				Item item;
 				if(rnd()<0.5)item=new Bucket();

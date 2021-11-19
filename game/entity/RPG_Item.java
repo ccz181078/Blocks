@@ -26,7 +26,7 @@ public class RPG_Item extends RPG_Small_Guided{
 		super.update();
 		if(!item.isEmpty()){
 			ThrowedItem e=new ThrowedItem(0,0,item.get());
-			e.initPos(x+ax*0.75,y+ay*0.75,xv,yv,SourceTool.make(this,"携带的"));
+			e.initPos(x+ax*0.75,y+ay*0.75,xv,yv,SourceTool.carry(this));
 			e.des_flag=true;
 			e.attacking=true;
 			e.update0();

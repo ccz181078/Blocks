@@ -1,1 +1,1 @@
-NearbyInfo.BW=Integer.valueOf((#0):String)
+World.cur.setting.BW=Integer.valueOf((#0):String)

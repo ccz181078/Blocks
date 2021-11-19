@@ -47,7 +47,7 @@ public class Server implements Runnable{
 				Socket s=null;
 				while(s==null&&World.cur.rnd_id==rnd_id){
 					try{s=Server.ss.accept();}catch(SocketTimeoutException e){}
-					Thread.yield();
+					Thread.sleep(3);
 				}
 				new ServerThread(rnd_id,s);
 			}

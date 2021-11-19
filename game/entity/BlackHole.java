@@ -19,7 +19,7 @@ public class BlackHole extends Entity{
 	double radius(){return min(1,sqrt(hp)*0.01);}
 	public double width(){return min(1,radius());}
 	public double height(){return min(1,radius());}
-	public double gA(){return 0;}
+	public double gA(){return World.cur.gtree==null?0:super.gA();}
 	public boolean chkAgent(){return false;}
 	public boolean chkEnt(){return false;}
 	public boolean chkBlock(){return false;}
@@ -31,7 +31,7 @@ public class BlackHole extends Entity{
 	}
 	private void checkEnt(Entity e){
 		if(e.hp<=0||e.isRemoved())return;
-		double d=distL2(e),xd=x-e.x,yd=y-e.y;
+		double xd=x-e.x+(width()*rnd(-1,1)+e.width()*rnd(-1,1)),yd=y-e.y+(height()*rnd(-1,1)+e.height()*rnd(-1,1)),d=sqrt(xd*xd+yd*yd);
 		if(d>20*radius0())return;
 		if(abs(e.x-x)<e.width()+radius0()&&abs(e.y-y)<e.height()+radius0()&&rnd()<V/(e.V+1e-8)){
 			impulse(e,1);
@@ -41,14 +41,16 @@ public class BlackHole extends Entity{
 			else e.remove();
 			return;
 		}
-		double xF=xd/(d*d),yF=yd/(d*d),M=hp*e.mass()*1e-4;
-		e.impulse(xF,yF,M);
-		impulse(-xF,-yF,M);
+		if(World.cur.gtree==null){
+			double xF=xd/(d*d),yF=yd/(d*d),M=hp*e.mass()*1e-4;
+			e.impulse(xF,yF,M);
+			impulse(-xF,-yF,M);
+		}
 	}
 	@Override
 	public void update(){
 		super.update();
-		if(y<0||y>128)hp-=1;
+		if(y<0||y>World.cur.getMaxY()+1)hp-=1;
 		hp-=0.01;
 		double R=20*radius0();
 		for(Entity e:game.world.World.cur.getNearby(x,y,R,R,false,true,false).ents){
@@ -63,12 +65,7 @@ public class BlackHole extends Entity{
 			int py=f2i(y+rnd_gaussion()*c);
 			Block b=World.cur.get(px,py);
 			if(b.fallable()){
-				World.cur.setAir(px,py);
-				Entity e=new FallingBlock(px,py,b);
-				e.xv=0;
-				e.yv=0;
-				checkEnt(e);
-				e.add();				
+				b.fall(px,py,0,0);
 			}else{
 				b.des(px,py,3,this);
 			}

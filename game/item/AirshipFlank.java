@@ -15,6 +15,7 @@ private static final long serialVersionUID=1844677L;
 	}
 	public Airship_Flank ent;
 	public Item clickAt(double x,double y,Agent a){
+		if(max(abs(x-a.x),abs(y-a.y))>4)return this;
 		ent.dir=a.dir;
 		ent.initPos(x,y,0,0,a);
 		if(ent.cadd())return null;

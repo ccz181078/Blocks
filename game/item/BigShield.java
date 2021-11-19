@@ -42,7 +42,7 @@ class BigIronShield extends BigShield{
 		return a;
 	}
 	public double mass(){return 6;}
-	public double maxHp(){return 10000;}
+	public double maxHp(){return 5000;}
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 }
 class BigHDShield extends BigShield{
@@ -50,7 +50,7 @@ class BigHDShield extends BigShield{
 		return a;
 	}
 	public double mass(){return 80;}
-	public double maxHp(){return 20000;}
+	public double maxHp(){return 10000;}
 	public double hardness(){return game.entity.NormalAttacker.HD;}
 }
 class BigIronNailShield extends BigIronShield{
@@ -69,6 +69,13 @@ class BigWoodenShield extends BigShield{
 		return a;
 	}
 	public double mass(){return 3;}
-	public double maxHp(){return 2000;}
+	public double maxHp(){return 400;}
 	public double hardness(){return game.entity.NormalAttacker.WOODEN;}
+}
+class BigCactusShield extends BigWoodenShield{
+	public void touchEnt(Entity e){
+		super.touchEnt(e);
+		e.onAttacked(ent.v2rel(e)*10+0.2,ent);
+	}
+	public double hardness(){return game.entity.NormalAttacker.CACTUS;}
 }

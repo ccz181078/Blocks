@@ -8,6 +8,7 @@ import static util.MathUtil.*;
 
 public abstract class DirtType extends Block{
 	private static final long serialVersionUID=1844677L;
+	public double transparency(){return 0.8;}
 	public void onPress(int x,int y,Item item){
 		des(x,y,item.shovelVal(),item);
 		item.onDesBlock(this);
@@ -17,8 +18,7 @@ public abstract class DirtType extends Block{
 	public boolean onUpdate(int x,int y){
 		if(super.onUpdate(x,y))return true;
 		if(World.cur.get(x,y-1).isCoverable()){
-			World.cur.setAir(x,y);
-			new FallingBlock(x,y,this).add();
+			fall(x,y,0,0);
 			return true;
 		}
 		if(rnd()<0.3){
@@ -27,11 +27,25 @@ public abstract class DirtType extends Block{
 			if(b.rootBlock() instanceof DirtType
 			&& World.cur.get(x+dir,y-1).isCoverable()
 			){
-				World.cur.setAir(x,y-1);
+				World.cur.setVoid(x,y-1);
 				new FallingBlock(x,y-1,b).initPos(x+0.5+dir*0.3,y-0.5,dir*rnd(0.01,0.1),0,b.src).add();
-				World.cur.setAir(x,y);
-				new FallingBlock(x,y,this).add();
+				fall(x,y,0,0);
 				return true;
+			}
+			if(rnd()<0.1){
+				if(!(b.rootBlock() instanceof DirtType)){
+					boolean deep=true;
+					for(int i=1;i<=5;++i){
+						if(!World.cur.get(x,y+i).isSolid()){
+							deep=false;
+							break;
+						}
+					}
+					if(deep){
+						World.cur.set(x,y,new StoneBlock());
+						return true;
+					}
+				}
 			}
 		}
 		if(damage>0)--damage;

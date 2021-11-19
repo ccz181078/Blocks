@@ -30,7 +30,7 @@ private static final long serialVersionUID=1844677L;
 		y=_y+0.5;
 		xv=0;
 		yv=0;
-		hp=20;
+		hp=_b.getFallHp();
 		block=_b;
 	}
 	void onKill(){
@@ -55,7 +55,7 @@ private static final long serialVersionUID=1844677L;
 			y_=y-0.5;
 		}
 		if(t_new>10)
-		if((!World.cur.get(x_,y_).isCoverable())&&World.cur.get(x,y).isCoverable()){
+		if((!World.cur.get(x_,y_).isCoverable()||hp<5)&&World.cur.get(x,y).isCoverable()){
 			double xp=x-floor(x);
 			if(abs(xp-0.5)<0.1){
 				block.src=getSrc();
@@ -126,7 +126,7 @@ private static final long serialVersionUID=1844677L;
 	@Override
 	void touchEnt(Entity ent){
 		double k=intersection(ent)*(max(v2rel(ent)-0.04,0)*block.impactValue());
-		ent.onAttacked(k,SourceTool.make(this,"的撞击"),this);
+		ent.onAttacked(k,SourceTool.impact(this),this);
 		hp-=k;
 		super.touchEnt(ent);
 	}

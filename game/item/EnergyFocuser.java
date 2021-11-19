@@ -13,7 +13,7 @@ private static final long serialVersionUID=1844677L;
 	public BmpRes getBmp(){return bmp;}
 	public double toolVal(){return 0;}
 	public void onDesBlock(Block b){}
-	public int maxDamage(){return 5000;}
+	public int maxDamage(){return 200;}
 	int cd=0;
 	@Override
 	public void onCarried(Agent a){
@@ -31,7 +31,7 @@ private static final long serialVersionUID=1844677L;
 			cd=4;
 			loseEnergy(200);
 			++damage;
-			new FocusedEnergy().initPos(tx,ty,a.xv,a.yv,SourceTool.make(a,"放置的")).add();
+			new FocusedEnergy().initPos(tx,ty,a.xv,a.yv,SourceTool.place(a)).add();
 		}
 		return true;
 	}

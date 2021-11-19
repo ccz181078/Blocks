@@ -11,6 +11,7 @@ private static final long serialVersionUID=1844677L;
 		hp=1000;
 	}
 	public double mass(){return 1;}
+	public boolean shouldKeepAwayFrom(){return true;}
 	
 	@Override
 	void touchEnt(Entity ent){
@@ -18,6 +19,10 @@ private static final long serialVersionUID=1844677L;
 		exchangeVel(ent,0.3);
 		hp-=200;
 		super.touchEnt(ent);
+	}
+	
+	protected void drop(){
+		new game.item.Iron().drop(x,y,8);
 	}
 	
 	@Override

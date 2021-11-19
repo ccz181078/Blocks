@@ -14,7 +14,7 @@ public abstract class LiquidType extends Block{
 		if(it instanceof Bucket){
 			it.onDesBlock(this);
 			if(rnd()*maxDamage()<1){
-				World.cur.setAir(x,y);
+				World.cur.setVoid(x,y);
 				drop(x,y);
 			}
 		}

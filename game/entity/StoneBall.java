@@ -15,6 +15,16 @@ public class StoneBall extends Entity implements AttackFilter{
 	public StoneBall(){
 		hp=40;
 	}
+	public boolean pickable(){return true;}
+	public void pickedBy(Agent a){
+		if(!removed){
+			drop();
+			removed=true;
+		}
+	}
+	protected void drop(){
+		kill();
+	}
 	public void update(){
 		super.update();
 		if(xdep!=0||ydep!=0||in_wall)hp-=0.1;

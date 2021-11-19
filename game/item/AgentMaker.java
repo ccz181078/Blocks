@@ -49,7 +49,7 @@ public class AgentMaker extends Item{
 	
 	public Item clickAt(double x,double y,Agent a){
 		Agent agent=asEnt();
-		agent.initPos(x,y,0,0,SourceTool.make(a,"放置的"));
+		agent.initPos(x,y,0,0,SourceTool.place(a));
 		if(agent.cadd())return null;
 		return this;
 	}

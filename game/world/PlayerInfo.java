@@ -61,10 +61,12 @@ public class PlayerInfo implements java.io.Serializable{
 		action_queue=new LinkedList<>();
 		return ret;
 	}
-	void genNI(){
-		if(!player.online||ni!=null)return;
+	int genNI(){
+		if(!player.online||ni!=null)return 0;
 		ni=World.cur.getNearby(player).getBytes((BitSet)known_id.clone(),H_div_W);
-		if(ss!=null)ss.write(ni);
+		int len=0;
+		if(ss!=null)len+=ss.write(ni);
+		return len;
 	}
 	public synchronized void setAction(byte[]a)throws Exception{
 		/*int len=Math.min(a.length,16);

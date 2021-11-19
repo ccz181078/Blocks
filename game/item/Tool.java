@@ -30,7 +30,7 @@ private static final long serialVersionUID=1844677L;
 	public void onAttack(Entity a,Source src){
 		++damage;
 	}
-	public double repairRate(){return 1;}
+	public double repairRate(){return 2e-3*maxDamage();}
 	public void onVanish(double x,double y,Source src){
 		onBroken(x,y);
 	}

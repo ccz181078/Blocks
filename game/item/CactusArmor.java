@@ -11,7 +11,6 @@ public class CactusArmor extends WoodenArmor{
 	public double hardness(){return game.entity.NormalAttacker.CACTUS;}
 	@Override
 	public void touchAgent(Human w,Agent a){
-		double difx=w.xv-a.xv,dify=w.yv-a.yv;
-		a.onAttacked((difx*difx+dify*dify)*5+0.1,SourceTool.armor(w,this),this);
+		a.onAttacked(w.v2rel(a)*5+0.1,SourceTool.armor(w,this),this);
 	}
 }

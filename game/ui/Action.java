@@ -92,17 +92,14 @@ private static final int C1=1024;
 				continue;
 			}
 			if(m instanceof TextEvent){
-				String s=UI.pl.name+": "+((TextEvent)m).s;
-				for(Player p:World.cur.getPlayers()){
-					p.addText(s);
-				}
+				UI.pl.onText(((TextEvent)m).s);
 				continue;
 			}
 			if(m.tp>=C1){
 				tx=(m.x-width/2)/(height/C);
 				ty=(height/2-m.y)/(height/C);
 				if(m.tp==C1){
-					double rot=target.getRotation()*PI/180;
+					double rot=target.getViewRotation()*PI/180;
 					double tx0=tx,ty0=ty,c=cos(rot),s=sin(rot);
 					tx=(float)(tx0*c+ty0*s);
 					ty=(float)(-tx0*s+ty0*c);
@@ -119,7 +116,7 @@ private static final int C1=1024;
 			tx=(m.x-width/2)/(height/C);
 			ty=(height/2-m.y)/(height/C);
 			if(true){
-				double rot=target.getRotation()*PI/180;
+				double rot=target.getViewRotation()*PI/180;
 				double tx0=tx,ty0=ty,c=cos(rot),s=sin(rot);
 				tx=(float)(tx0*c+ty0*s);
 				ty=(float)(-tx0*s+ty0*c);

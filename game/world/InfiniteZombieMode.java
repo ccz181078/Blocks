@@ -144,9 +144,10 @@ public class InfiniteZombieMode extends GameMode{
 			give(z,Craft._bullet,1+(int)rnd_exp(30));
 			give(z,Craft._bullet,1+(int)rnd_exp(30));
 		}
-		int x=rndi(-250,250);
-		z.x=x;
-		z.y=World.cur.getGroundY(x)+1;
+		double xy[]=randomPosFarFromPlayer();
+		z.x=xy[0];
+		z.y=xy[1];
+		
 		z.add();
 	}
 	
@@ -177,9 +178,9 @@ public class InfiniteZombieMode extends GameMode{
 	public void onZombieDead(Zombie w){
 		if(rnd()<0.4)level+=1;
 		
-		/*BoxShield box=new BoxShield();
+		BoxShield box=new DeadHumanBoxShield();
 		for(SingleItem si:w.getItems().toArray())box.insert(si);
-		box.ent.initPos(w.x,w.y,w.xv,w.yv,SourceTool.make(w,"死后生成的")).add();*/
+		box.ent.initPos(w.x,w.y,w.xv,w.yv,SourceTool.dropOnDead(w)).add();
 
 		//level+=4;
 		super.onZombieDead(w);
@@ -206,6 +207,6 @@ public class InfiniteZombieMode extends GameMode{
 	}*/
 	public void onPlayerRespawn(Player player){
 		give(player);
-		//new SetRelPos(player,null,0,-5);
+		randomRespawn(player);
 	}
 }

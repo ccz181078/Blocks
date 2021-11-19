@@ -1,7 +1,6 @@
 package game.world;
 import static java.lang.Math.*;
 import static util.MathUtil.*;
-import static game.world.World.World_Height;
 import game.block.*;
 import java.util.*;
 import java.io.*;
@@ -17,13 +16,13 @@ class PvpWorldGenerator extends WorldGenerator{
 		nxt_plant=rndi(3,10);
 	}
 	Block[] nxt(){
-		Block[] b=new Block[World_Height];
+		Block[] b=new Block[World.cur.World_Height];
 		int y=0;
 		Block _StoneBlock=new StaticBlock(new SemilavaBlock());
 		for(;y<bedrock_y;++y)b[y]=_BedRockBlock;
 		for(;y<lava_y;++y)b[y]=_StoneBlock;
 		for(;y<stone_y;++y)b[y]=rnd()*(stone_y-lava_y)>(y-lava_y+1) ? _StoneBlock : _StoneBlock;
-		for(y=stone_y;y<World_Height;++y)b[y]=_AirBlock;
+		for(y=stone_y;y<World.cur.World_Height;++y)b[y]=_AirBlock;
 		ground.gen(b,this);
 		if(nxt_plant<0){
 			if(rnd()<0.9)nxt_plant=rndi(6,10);

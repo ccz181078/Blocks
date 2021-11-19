@@ -7,7 +7,7 @@ import game.world.World;
 import game.block.Block;
 
 public class RopeHook extends Rope{
-	int res_cnt=80;
+	int res_cnt=20;
 	public double mass(){return 1;}
 	double nx,ny;
 	int bx,by;
@@ -84,8 +84,8 @@ public class RopeHook extends Rope{
 				x1+=next.x;
 				y1+=next.y;
 			}
-			float ps[]=new float[]{0,0,(float)(x1-x),(float)(y1-y)};
-			cv.drawLines(ps,0xff800000);
+			//float ps[]=new float[]{0,0,(float)(x1-x),(float)(y1-y)};
+			//cv.drawLines(ps,0xff800000);
 		}
 	}
 }

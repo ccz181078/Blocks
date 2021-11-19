@@ -18,7 +18,7 @@ public final class World implements Serializable{
 	private static final long serialVersionUID=1844677L;
 	//描述一个世界(一个存档)
 	
-	public static final int World_Height=128,log_Chunk_Width=5,Chunk_Width=1<<log_Chunk_Width;
+	public static final int log_Chunk_Width=5,Chunk_Width=1<<log_Chunk_Width;
 	public static int UPDATE_CNT=1;
 	public static World cur;//当前世界
 
@@ -42,10 +42,54 @@ public final class World implements Serializable{
 	private GameMode mode=null;
 	private transient CheckPoint checkpoint=null;
 	private transient boolean fast_forward=false;
+	public transient long compressed_length=0;
+	int World_Height=128;
+	public transient GravityTree gtree=null;
 	public static class Setting implements Serializable{
-		public float BW=12;
-		public boolean shoot_trajectory_prediction=false;
-		public boolean predict_hit_tip=false;
+		public float BW=12;//屏幕高度对应的方块数量，范围(0,127]
+		
+		public boolean show_human_name=true;//显示玩家/僵尸等的名字
+		
+		public boolean gen_ent=true;//刷怪
+		
+		public boolean show_agents=true;//显示生物
+		public boolean show_ents=true;//显示普通实体
+		public boolean show_blocks=true;//显示方块
+		
+		//pvp模式常用限制
+		public boolean enable_craft=true;//允许玩家进行合成
+		public boolean enable_high_tech=true;//在pvp中允许购买包括载具、瞬移、追踪子弹等的物品
+		
+		//场的显示
+		public boolean shoot_trajectory_prediction=false;//显示弹道预测（仅考虑静态重力场）
+		public boolean predict_hit_tip=false;//显示僵尸ai的弹道预测
+		
+		public boolean show_gravitational_field=false;//显示重力场
+		public double gravitational_field_scale=1e2;//重力场显示的缩放
+		
+		public boolean enable_light=true;//启用光照渲染
+		public boolean show_mass_field=false;//显示质量分布场代替光照
+		public double mass_field_clip=2.0;//方块内质量大于这个值时，质量分布场的显示无法分辨
+		
+		public boolean show_momentum_field=false;//显示动量场
+		public double momentum_field_scale=0.1;//动量场显示的缩放
+		
+		//重力参数
+		public boolean use_real_gravity=false;//根据质量的分布计算引力，而不是使用恒定向下的重力场
+		public boolean enable_group_fall=true;//允许方块整体下落
+		public double gravitational_constant=1.0;//引力相比默认值的倍数
+		
+		//空气动力学参数
+		public double air_drag_coefficient=1.0;//空气阻力相比默认值的倍数
+		public double random_walk_coefficient=5e-4;//物体受到的随机扰动的强度
+		
+		//人类参数
+		public double xp_recovery_speed=1.0;//体力恢复速率相比默认值的倍数
+		public double human_max_xp=100;//人的体力上限
+		public double human_max_hp=40;//人的hp上限
+		public double human_max_hp_c1=0;//击杀数对人的hp上限的加成 //10
+		public double human_max_hp_c2=0;//击杀数平方对人的hp上限的加成 //1
+		public int player_max_air=100;//玩家的空气值上限
 	};
 	public transient Setting setting=null;
 	static class OpLog implements Serializable{
@@ -108,6 +152,7 @@ public final class World implements Serializable{
 	
 	public boolean login(String un,String pw,Pointer<PlayerInfo> pis,game.GameSetting gs){
 		debug.Log.i(un+":"+pw);
+		if(un.length()>=32)return false;
 		for(PlayerInfo pi:players)if(pi.check(un,pw)){
 			pi.player.game_setting=gs;
 			(pis.obj=pi).add();
@@ -115,7 +160,7 @@ public final class World implements Serializable{
 			showText(c.getTime().toLocaleString()+" : "+un+" 已登录");
 			return true;
 		}else if(pi.check0(un))return false;
-		if(players.size()<100){
+		if(players.size()<1000){
 			PlayerInfo pi=regPlayer(un,pw,false);
 			pi.player.game_setting=gs;
 			(pis.obj=pi).add();
@@ -156,6 +201,19 @@ public final class World implements Serializable{
 		return ps.toArray(new Player[ps.size()]);
 	}
 	
+	public int getMinY(){
+		return 0;
+	}
+	public int getMaxY(){
+		return World_Height-1;
+	}
+	public int getMinX(){
+		return getChunk(min_chunk_id).minX();
+	}
+	public int getMaxX(){
+		return getChunk(max_chunk_id).maxX();
+	}
+	
 	public float getRelX(double x){
 		int x0=getChunk(min_chunk_id).minX();
 		int x1=getChunk(max_chunk_id).maxX();
@@ -173,7 +231,7 @@ public final class World implements Serializable{
 	//获取一个玩家能看到的附近区域
 	public NearbyInfo getNearby(Player pl){
 		double xd=(setting.BW),yd=(setting.BW/2);
-		if(pl.getRotation()!=0){
+		if(pl.getViewRotation()!=0){
 			xd=yd=hypot(xd,yd)+1;
 		}
 		double ps[]=pl.getCamaraPos();
@@ -197,6 +255,11 @@ public final class World implements Serializable{
 		return ni0;
 	}
 	
+	public ArrayList<Entity> getNearbyEnts(double mx,double my,double xd,double yd){
+		NearbyInfo ni=getNearby(mx,my,xd,yd,false,true,true);
+		ni.ents.addAll(ni.agents);
+		return ni.ents;
+	}
 	//
 	public NearbyInfo getNearby(double mx,double my,double xd,double yd,boolean block,boolean ent,boolean agent){
 		NearbyInfo ni=new NearbyInfo();
@@ -231,6 +294,10 @@ public final class World implements Serializable{
 	
 	
 	private void newWorld(InitConfig config){
+		World cur0=cur;
+		cur=this;
+		setting=new Setting();
+		
 		switch(config.mode){
 			case CREATIVE:
 				mode=new NormalMode();
@@ -258,6 +325,9 @@ public final class World implements Serializable{
 				break;
 			case LEVEL:
 				mode=new LevelMode();
+				break;
+			case RTS:
+				mode=new RTSMode();
 				break;
 		}
 		mode.enable_group_fall=true;
@@ -297,7 +367,9 @@ public final class World implements Serializable{
 		}
 		//for(int i=0;i<=9;++i)regPlayer("user"+i,"123456",false);
 		getMode().newWorld(this);
-		addPlayer(config.mode==Mode.CREATIVE);//android
+		addPlayer(config.mode==Mode.CREATIVE);
+		
+		cur=cur0;
 	}
 	
 	public void addPlayer(boolean creative_mode){
@@ -371,6 +443,10 @@ public final class World implements Serializable{
 		cur.task_queue=new ConcurrentLinkedQueue<>();
 		cur.fast_forward=false;
 		cur.checkpoint=new CheckPoint(bytes);
+		os=new FileOutputStream(cur.save_path+"state.txt");
+		os.write(cur.toString().getBytes());
+		os.close();
+
 	}
 	transient String record_all_path=null;
 	public void startRecordAll(String path){
@@ -378,7 +454,16 @@ public final class World implements Serializable{
 		int i=0;
 		for(PlayerInfo pi:players){
 			++i;
-			String fn=path+"_"+i+"_"+pi.getUserName();
+			String fn=path+"_"+i+"_"+pi.getUserName()
+			.replace('/','_')
+			.replace('\\','_')
+			.replace(':','_')
+			.replace('*','_')
+			.replace('?','_')
+			.replace('"','_')
+			.replace('<','_')
+			.replace('>','_')
+			.replace('|','_');
 			if(pi.ss!=null)pi.ss.close();
 			pi.ss=new util.ScreenSaver(fn);
 			debug.Log.i("开始录制: "+fn);
@@ -613,7 +698,12 @@ public final class World implements Serializable{
 		if(y<0||y>=World_Height)return;
 		int x1=x>>log_Chunk_Width,x2=x&(Chunk_Width-1);
 		if(x1<min_chunk_id||x1>max_chunk_id)return;
-		getChunk(x1).blocks[y<<log_Chunk_Width|x2]=block;
+		Block bs[]=getChunk(x1).blocks;
+		int idx=y<<log_Chunk_Width|x2;
+		int m0=bs[idx].isCoverable()?0:bs[idx].mass();
+		int m1=block.isCoverable()?0:block.mass();
+		if(m1!=m0&&gtree!=null)gtree.update(x,y,m1-m0);
+		bs[idx]=block;
 	}
 	
 	//在给定坐标放置方块，替换掉原有方块，并对原来的方块执行onDestroy
@@ -623,8 +713,11 @@ public final class World implements Serializable{
 		if(x1<min_chunk_id||x1>max_chunk_id)return;
 		Block[] b=getChunk(x1).blocks;
 		int w=y<<log_Chunk_Width|x2;
+		int m0=b[w].isCoverable()?0:b[w].mass();
+		int m1=block.isCoverable()?0:block.mass();
 		b[w].onDestroy(x,y);
 		b[w]=block;
+		if(m1!=m0&&gtree!=null)gtree.update(x,y,m1-m0);
 		block.onPlace(x,y);
 		check4(x,y);
 	}
@@ -662,6 +755,11 @@ public final class World implements Serializable{
 	//把给定坐标的方块改为空气，原方块不接收到事件
 	public void setAir(int x,int y){
 		set(x,y,new AirBlock());
+		check4(x,y);
+	}
+	
+	public void setVoid(int x,int y){
+		set(x,y,new VoidBlock());
 		check4(x,y);
 	}
 
@@ -724,13 +822,17 @@ public final class World implements Serializable{
 	//进行一次世界更新
 	//每帧进行一次
 	private void update0(){
+		
+		if(setting.use_real_gravity){
+			if(gtree==null)gtree=new GravityTree(getMinX(),getMinY(),getMaxX()-getMinX(),getMaxY()-getMinY()+1);
+		}else gtree=null;
 
 		updWeather();
 		
 		out_of_world.last_chk_time=time+1;
 		//Log.i("update","time="+time+" new_ents:"+new_ents.size()+" new_agents:"+new_agents.size());
 		
-		
+		if(setting.gen_ent)
 		for(Player p:getPlayers()){
 			int id=getChunkId(p.x);
 			int L=max(id-2,min_chunk_id),R=min(id+2,max_chunk_id);
@@ -740,7 +842,24 @@ public final class World implements Serializable{
 			}
 		}
 		
+		if(time%30==0){
+			ArrayList<Agent> del=new ArrayList<>();
+			for(Agent a:agentref_1.keySet()){
+				if(a.removed){
+					del.add(a);
+				}
+			}
+			for(Agent a:del){
+				long t=agentref_1.get(a);
+				agentref_1.remove(a);
+				agentref_2.remove(t);
+			}
+		}
+
 		for(Chunk c:chunks)if(c!=null)c.updateEnts0();
+		
+		for(Chunk c:chunks)if(c!=null)c.randomUpdateBlocks();
+		
 		for(Chunk c:chunks)if(c!=null)c.updateEnts();
 		for(Chunk c:chunks)if(c!=null)c.updateAgents0();
 		for(Chunk c:chunks)if(c!=null)c.updateAgents1();
@@ -751,7 +870,6 @@ public final class World implements Serializable{
 		//在此之后不能getNearby
 		for(Chunk c:chunks)if(c!=null)c.moveEnts();
 		processMoveEvents();
-		for(Chunk c:chunks)if(c!=null)c.randomUpdateBlocks();
 		
 		
 		Collections.shuffle(chk_blocks);
@@ -795,7 +913,7 @@ public final class World implements Serializable{
 			if(pi.player.online){
 				l_end|=pi.player.x<getChunk(min_chunk_id).minX()+100;
 				r_end|=pi.player.x>getChunk(max_chunk_id).maxX()-100;
-				if(!fast_forward)pi.genNI();
+				if(!fast_forward)compressed_length+=pi.genNI();
 				++cnt;
 				if(pi instanceof RemotePlayerInfo){
 					//if(pi.skip_t>200)pi.remove();
@@ -856,15 +974,36 @@ public final class World implements Serializable{
 			sbc=0;
 		}*/
 	}
+	HashMap<Agent,Long> agentref_1=new HashMap<>();
+	HashMap<Long,Agent> agentref_2=new HashMap<>();
+	long max_ref_id=0;
+	public static long getAgentRef(Agent a){
+		if(cur==null||a==null)return 0;
+		if(!cur.agentref_1.containsKey(a)){
+			cur.agentref_1.put(a,++cur.max_ref_id);
+			cur.agentref_2.put(cur.max_ref_id,a);
+		}
+		return cur.agentref_1.get(a);
+	}
+	public static Agent getAgentRef(long a){
+		if(cur==null||a==0)return null;
+		if(cur.agentref_2.containsKey(a)){
+			return cur.agentref_2.get(a);
+		}
+		return null;
+	}
 	public void resetRootPlayer(){
 		PlayerInfo pi=players.get(0);
 		pi.add();
 	}
 	private void readObject(ObjectInputStream in)throws IOException,ClassNotFoundException{ 
 		in.defaultReadObject();
+		if(agentref_1==null)agentref_1=new HashMap<>();
+		if(agentref_2==null)agentref_2=new HashMap<>();
 		if(new_ni_ents==null){
 			new_ni_ents=new ArrayList<>();
 		}
+		if(World_Height==0)World_Height=128;
 	}
 	
 	public enum Mode{
@@ -877,6 +1016,7 @@ public final class World implements Serializable{
 		PVP,
 		ECPVP,
 		LEVEL,
+		RTS,
 	};
 	public enum Terrain{
 		NORMAL,

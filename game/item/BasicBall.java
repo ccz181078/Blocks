@@ -12,4 +12,5 @@ public abstract class BasicBall extends LaunchableItem{
 private static final long serialVersionUID=1844677L;
 	abstract game.entity.Entity getBall();
 	protected Entity toEnt(){return getBall();}
+	public double launchValue(){return 100;}
 };

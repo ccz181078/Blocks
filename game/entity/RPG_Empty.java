@@ -15,8 +15,4 @@ public class RPG_Empty extends RPG{
 		super();
 		rpg=a;
 	}
-	protected void drop(){
-		kill();
-		rpg.drop(x,y);
-	}
 }

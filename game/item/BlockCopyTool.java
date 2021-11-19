@@ -10,6 +10,7 @@ public class BlockCopyTool extends Item{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp[]=BmpRes.load("Item/BlockCopyTool_",3);
 	public BmpRes getBmp(){return bmp[state];}
+	public boolean disableRecover(){return true;}
 	
 	int state=0;
 	

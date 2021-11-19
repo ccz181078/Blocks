@@ -1,0 +1,1 @@
+World.cur.setting.predict_hit_tip=!World.cur.setting.predict_hit_tip

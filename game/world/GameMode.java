@@ -58,6 +58,7 @@ public abstract class GameMode implements java.io.Serializable{
 			else new GreenMonster(x+0.5,y+0.5).cadd();
 		}else if(c==SandBlock.class){
 			if(rnd()<0.3)new CactusMonster(x+0.5,y+0.5).cadd();
+			else if(rnd()<10./(y+10))new StoneMonster(x+0.5,y+0.5).cadd();
 		}else if(c==DarkSandBlock.class){
 			if(rnd()<0.1&&World.cur.weather==Weather._dark)new DarkMonster(x+0.5,y+0.5).cadd();
 			else if(rnd()<0.3)new DarkWorm(x+0.5,y+0.5).cadd();
@@ -68,6 +69,8 @@ public abstract class GameMode implements java.io.Serializable{
 			else if(rnd()<0.1)new AbsorberMonster(x+0.5,y+0.5).cadd();
 			else if(rnd()<0.2)new QuartzMonster(x+0.5,y+0.5).cadd();
 			else new StoneMonster(x+0.5,y+0.5).cadd();
+		}else if(c==GravelBlock.class){
+			new StoneMonster(x+0.5,y+0.5).cadd();
 		}
 		
 	}
@@ -108,5 +111,43 @@ public abstract class GameMode implements java.io.Serializable{
 	}
 	public void touchLevelEnd(LevelEnd e,Player pl){
 		e.kill();
+	}
+	static int[] randomPos(){
+		int x=rndi(World.cur.getMinX(),World.cur.getMaxX());
+		int y0=World.cur.getMinY();
+		int y1=World.cur.getMaxY();
+		int y=World.cur.getGroundY(x),t=1,y_last=-1;
+		for(int i=y0;i<=y1;++i){
+			if(!World.cur.get(x,i-1).isCoverable()&&World.cur.get(x,i).isCoverable()&&World.cur.get(x,i+1).isCoverable()){
+				if(rnd()*t<1){
+					y_last=y=i;
+					++t;
+				}
+			}else if(y_last!=-1){
+				if(rnd()*t<1){
+					y=y_last;
+					++t;
+				}
+			}
+		}
+		return new int[]{x,y};
+	}
+	static boolean nearPlayer(double x,double y){
+		for(Player p:World.cur.getPlayers()){
+			if(p.locked)continue;
+			if(max(abs(p.x-x),abs(p.y-y))<World.cur.setting.BW)return true;
+		}
+		return false;
+	}
+	static double[] randomPosFarFromPlayer(){
+		for(int t=0;;++t){
+			int xy[]=randomPos();
+			double x=xy[0]+0.5,y=xy[1]+1;
+			if(t>10||!nearPlayer(x,y))return new double[]{x,y};
+		}
+	}
+	static void randomRespawn(Player player){
+		double xy[]=randomPosFarFromPlayer(),x=xy[0],y=xy[1];
+		new SetRelPos(player,null,x,y);
 	}
 }

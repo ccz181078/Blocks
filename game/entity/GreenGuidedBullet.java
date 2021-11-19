@@ -36,6 +36,7 @@ public class GreenGuidedBullet extends GuidedBullet{
 	@Override
 	void touchEnt(Entity ent){
 		if(source==ent.source&&(ent instanceof GuidedBullet))return;
+		if(checkRecycle(ent))return;
 		double v2=v2rel(ent);
 		ent.onAttacked(max(0,v2+0.05)*4*60,this);
 		exchangeVel(ent,0.1);

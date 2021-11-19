@@ -40,7 +40,7 @@ public class ServerThread implements Runnable{
 			}});
 			long tt=System.currentTimeMillis();
 			while(state.obj==null){
-				Thread.yield();
+				Thread.sleep(3);
 				if(System.currentTimeMillis()-tt>time_out)throw new Exception("Timeout");
 			}
 			if(!state.obj)throw new Exception(un+" login failed");
@@ -57,7 +57,7 @@ public class ServerThread implements Runnable{
 						while(pex.obj==null){
 							//long tt=System.currentTimeMillis();
 							pi.obj.setAction(cis.read());
-							Thread.yield();
+							Thread.sleep(3);
 							//sleep(Math.max(5,33-(System.currentTimeMillis()-tt)));
 						}
 					}catch(Exception e){
@@ -72,12 +72,12 @@ public class ServerThread implements Runnable{
 				while((b=pi.obj.getNI())==null){
 					if(!pi.obj.player.online)break o1;
 					if(World.cur.rnd_id!=rnd_id)break o1;
-					Thread.yield();
+					Thread.sleep(3);
 					if(System.currentTimeMillis()-tt>time_out)throw new Exception("Timeout");
 					if(pex.obj!=null)throw pex.obj;
 				}
 				cos.write(b);
-				Thread.yield();
+				Thread.sleep(3);
 			}
 			throw new Exception();
 		}catch(Exception e){

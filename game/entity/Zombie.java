@@ -75,6 +75,7 @@ public class Zombie extends Human{
 		}
 	}
 	
+	int ent_near_t=0;
 	@Override
 	public void ai(){
 		if(World.cur.getMode() instanceof LevelMode){
@@ -117,7 +118,7 @@ public class Zombie extends Human{
 			}
 			double xd=x-e.x,yd=y-e.y;
 			double rxv=xv-e.xv,ryv=yv-e.yv;
-			if(e instanceof FieldBuff||e instanceof ExplosiveBall||e instanceof EnergyExplodeBall||e instanceof ShockWave){
+			if(e.shouldKeepAwayFrom()){
 				ent_near=true;
 				xs+=xd*2;
 				ys+=yd*2;
@@ -136,8 +137,10 @@ public class Zombie extends Human{
 				}
 			}
 		}
+		if(ent_near)ent_near_t=5;
+		else ent_near_t=max(0,ent_near_t-1);
 		double a=max(0,hp)-last_hp;
-		if(a>2||ent_near){
+		if(a>2||ent_near_t>0){
 			chkShield();
 			if(abs(xs)*3>abs(ys)+1e-8)xdir=(xs>0?1:-1);
 			if(abs(ys)*3>abs(xs)+1e-8)ydir=(ys>0?1:-1);
@@ -650,6 +653,10 @@ public class Zombie extends Human{
 					if(((WoodenDoorBlock)b).tp==0){
 						b.onClick(x1,y1,Zombie.this);
 					}
+				}else if(b instanceof DoorBlock){
+					if(((DoorBlock)b).tp==0){
+						b.onClick(x1,y1,Zombie.this);
+					}
 				}
 			}
 			if(rnd()<0.05)findHuman();
@@ -860,16 +867,17 @@ public class Zombie extends Human{
 		SingleItem tmp=new SingleItem();
 		public ECAirship(){}
 		void nextBoxPos(){
-			if(round>8)return;
+			if(round>=4)return;
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
 			double m=(mode.nxt_l+mode.nxt_r)/2;
 			double d=(mode.nxt_r-mode.nxt_l)/2;
-			mode.next_box_pos=m+rnd(-d/2,d/2)+rnd(-d/2,d/2);
+			mode.next_box_pos=m+rnd(-d,0);
 			mode.next_box_state=0;
+			mode.next_box_pos_2=m+rnd(0,d);
+			mode.next_box_state_2=0;
 		}
 		void genBox(){
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
-			mode.next_box_state=1;
 			BoxShield box=new BoxShield();
 			if(rnd()<0.3){
 				box.insert(new EnergyStoneArmor().setAmount(1));
@@ -899,7 +907,7 @@ public class Zombie extends Human{
 			if(rnd()<0.5)box.insert(new EnergyStone().setAmount(1+rf2i(rnd_exp(5))));
 			if(rnd()<0.5)box.insert(new Iron().setAmount(1+rf2i(rnd_exp(5))));
 			
-			box.ent.initPos(x,y-2,xv,yv,SourceTool.make(Zombie.this,"发射的")).add();
+			box.ent.initPos(x,y-2,xv,yv,SourceTool.launch(Zombie.this)).add();
 		}
 		public Goal update(){
 			ECPvPMode mode=(ECPvPMode)World.cur.getMode();
@@ -918,22 +926,36 @@ public class Zombie extends Human{
 					tmp.insert(w.setAmount(5));
 					World.showText(">>> 飞行箱将使用"+w.getName()+"进行轰炸");
 				}
-			}*/
+			}
 			if(!tmp.isEmpty()&&World.cur.time%10==0){
 				si.insert(tmp.popItem());
 				setDes(x,y-2);
+			}*/
+			if(!first&&World.cur.time%10==0){
+				for(Agent a:World.cur.getNearby(x,y,6,6,false,false,true).agents){
+					if(a==Zombie.this)continue;
+					if(!a.hasBlood())continue;
+					Item it=new game.item.RPG_Small_HE();
+					si.insert(it);
+					it.autoUse(Zombie.this,a);
+					System.err.println("|> 飞行箱将使用"+it.getName()+"攻击"+a.getName());
+					break;
+				}
 			}
 			xdir=ydir=0;
-			double c=(125-y-yv*10)*5;
+			double c=(World.cur.getMaxY()-2-y-yv*10)*5;
 			if(c>rnd())ydir=1;
 			else if(-c>rnd())ydir=-1;
-			//if(y>126||yv>+0.1)ydir=-1;
-			//if(y<124||yv<-0.1)ydir=1;
 			if(round%2==0){
 				if(xv<0.4)xdir=1;
 				if(xv>0.6)xdir=-1;
 				if(x>mode.next_box_pos&&mode.next_box_state==0){
 					genBox();
+					mode.next_box_state=1;
+				}
+				if(x>mode.next_box_pos_2&&mode.next_box_state_2==0){
+					genBox();
+					mode.next_box_state_2=1;
 				}
 				if(x>mode.cur_r-10){
 					++round;
@@ -944,6 +966,11 @@ public class Zombie extends Human{
 				if(-xv>0.6)xdir=1;
 				if(x<mode.next_box_pos&&mode.next_box_state==0){
 					genBox();
+					mode.next_box_state=1;
+				}
+				if(x<mode.next_box_pos_2&&mode.next_box_state_2==0){
+					genBox();
+					mode.next_box_state_2=1;
 				}
 				if(x<mode.cur_l+10){
 					++round;
@@ -974,28 +1001,34 @@ public class Zombie extends Human{
 			if(ra_cache==null){
 				ra_cache=new int[4];
 			}
+			int mt=15;
+			if(a instanceof Player)mt=60;
 			//if(rnd()<0.1||items.getSelected().isEmpty())
-			for(int t=0;t<15;++t){
+			for(int t=0;t<mt;++t){
 				int x=rndi(0,si.length-1);
 				if(t<8){
 					x=ra_cache[x%4];
 				}
 				if(!si[x].isEmpty()){
 					//System.err.println("RangedAttack: "+si[x].get());
-					boolean is_ball=(si[x].get() instanceof game.item.ThrowableItem);
-					boolean is_rpg=(si[x].get() instanceof game.item.RPGLauncher);
+					Item it=si[x].get();
+					boolean is_ssb=(it instanceof game.item.SmallSpringBall);
+					boolean is_ball=(it instanceof game.item.ThrowableItem);
+					boolean is_rpg=(it instanceof game.item.RPGLauncher||it instanceof game.item.RPGItem||it instanceof game.item.Warhead);
 					if(is_ball && ball_cd>0)continue;
 					if(is_rpg && (rpg_cd>0||rpg_cd_tot>160))continue;
+					if(is_ssb&&xp<maxXp()/2)continue;
 					
 					items.select(si[x]);
+					String name=si[x].get().getName();
 					if(si[x].get().autoUse(Zombie.this,a)){
 						ra_cache[rndi(0,3)]=x;
-						if(is_ball)ball_cd=10;
+						if(is_ball)ball_cd=(is_ssb?3:10);
 						if(is_rpg){
 							rpg_cd=32;
 							rpg_cd_tot+=60;
 						}
-						//System.err.println(World.cur.time+" RangedAttack success: "+si[x].get());
+						//if(a instanceof Player)debug.Log.i(World.cur.time+" RangedAttack success: "+name);
 						return prev;
 					}
 					//clickAt(a.x+rnd(-a.width(),a.width()),a.y+rnd(-a.height(),a.height()));
@@ -1139,13 +1172,13 @@ public class Zombie extends Human{
 				if(!a.isWeakToNormalAttack()){
 					if(abs(x-a.x)<16)xdir=(x>a.x?1:-1);
 					if(abs(y-a.y)<8)ydir=1;
-					if(y>126)ydir=-1;
+					if(y>World.cur.getMaxY()-1)ydir=-1;
 				}
 			}
 
 			if(armor.get() instanceof Airship){
 				if(abs(y-a.y)<16)ydir=1;
-				if(y>126)ydir=-1;
+				if(y>World.cur.getMaxY()-1)ydir=-1;
 				if(abs(x-a.x)<32)xdir=(x>a.x?1:-1);
 				if(abs(xv)>0.4)xdir=(xv>0?-1:1);
 				if(yv>0.4||yv<-0.2)ydir=(yv>0?-1:1);

@@ -7,5 +7,6 @@ private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/IronBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 240;}
+	public int mass(){return 4;}
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 };

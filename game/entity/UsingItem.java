@@ -39,6 +39,7 @@ public class UsingItem extends NonInteractiveEnt{
 		hp-=1;
 		new SetRelPos(this,ent,0,0);
 		item.using(this);
+		if(!ent.active())kill();
 	}
 	void onKill(){
 		Fragment.gen(ent.x,ent.y,width(),height(),2,2,3,item.getBmp());

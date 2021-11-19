@@ -10,7 +10,7 @@ public class GravelBlock extends DirtType{
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 60;}
 	public void onLight(int x,int y,double v){
-		if(rnd()<0.001*v*v){
+		if(rnd()<0.01*v){
 			World.cur.set(x,y,new SandBlock());
 		}
 	}

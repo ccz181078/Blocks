@@ -23,6 +23,7 @@ public abstract class CircuitBlock extends Block{
 	public Block rootBlock(){return block;}
 	//basic info and event
 	int maxDamage(){return block.maxDamage();}
+	public int mass(){return block.mass();}
 	public double transparency(){return block.transparency();}
 	public double light(){return block.light();}
 	public boolean isCoverable(){return block.isCoverable();}//return whether you can place a block on the position of "this"

@@ -35,7 +35,7 @@ public class ZombieMode extends GameMode{
 	void initChunk(Chunk chunk,WorldGenerator gen,int dir){
 		super.initChunk(chunk,gen,dir);
 		int x=rndi(chunk.minX()+4,chunk.maxX()-4);
-		int y=min(World.cur.getGroundY(x)+rndi(7,20),World.World_Height-2);
+		int y=min(World.cur.getGroundY(x)+rndi(7,20),World.cur.World_Height-2);
 		new ZombieBase(x,y).add();
 	}
 	

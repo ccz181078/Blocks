@@ -70,7 +70,7 @@ public class Trebuchet extends Vehicle{
 				ball=si.popItem().asEnt();
 				double w=ball.width(),h=ball.height();
 				double d=hypot(w,h)+D;
-				ball.initPos(hu.x-d*sin(a),hu.y+0.5+d*cos(a),hu.xv+rnd_gaussion()*1e-8,hu.yv+rnd_gaussion()*1e-8,SourceTool.make(hu,"发射的")).add();
+				ball.initPos(hu.x-d*sin(a),hu.y+0.5+d*cos(a),hu.xv+rnd_gaussion()*1e-8,hu.yv+rnd_gaussion()*1e-8,SourceTool.launch(hu)).add();
 			}else{
 				double x=hu.x-(D+1)*sin(a),y=hu.y+0.5+(D+1)*cos(a);
 				game.world.NearbyInfo ni=World.cur.getNearby(x,y,1,1,false,true,true);

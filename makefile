@@ -35,8 +35,8 @@ release: ./build/blocks.jar
 	cp -r ./build/data/lv_* ./build/release/data
 	cp ./build/blocks.jar ./build/release
 	cp -r ./build/script ./build/release
-	cp ./run.cmd ./build/release
-	cp ./run.sh ./build/release
+	cp ./build/run.cmd ./build/release
+	cp ./build/run.sh ./build/release
 	cd ./build/release && zip -r ../Blocks.zip .
 	rm -r ./build/release
 	

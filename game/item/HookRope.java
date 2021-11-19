@@ -7,7 +7,7 @@ import game.entity.*;
 
 public class HookRope extends Tool{
 	private static final long serialVersionUID=1844677L;
-	static BmpRes bmp=new BmpRes("Item/StringItem");
+	static BmpRes bmp=new BmpRes("Item/HookRope");
 	public BmpRes getBmp(){return bmp;}
 	public double toolVal(){return 0;}
 	public int maxDamage(){return 1000;}

@@ -1,0 +1,14 @@
+pl:=World.cur.getRootPlayer(),
+for(i:=0,i<1000,i+=1,(
+x:=util.MathUtil.rnd_gaussion()*10,
+y:=util.MathUtil.rnd_gaussion()*10,
+//z:=game.item.Bullet().toEnt(),
+z:=game.entity.QuartzMonster(0.0,0.0),
+z.x=pl.x+x,
+z.y=pl.y+y,
+z.xv=y*0.005,
+z.yv=-x*0.005,
+z.hp*=10,
+z.source=pl,
+z.add()
+))

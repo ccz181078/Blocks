@@ -53,9 +53,11 @@ public class RPG_Bullet extends RPG{
 	public void explode(){
 		Source ex=SourceTool.explode(this);
 		while(!bullet.isEmpty()){
-			double k=0.55/(1e-3+hypot(xv,yv))+rnd_exp(0.55);
+			double k=rnd_exp(1);
+			double k0=1./max(1,bullet.get().mass()*0.4);
+			//0.55/(1e-3+hypot(xv,yv))+rnd_exp(0.55);
 			Entity e=bullet.popItem().asEnt();
-			e.initPos(x,y,(xv*k+yv*rnd_gaussion()*0.2+bxv),(yv*k-xv*rnd_gaussion()*0.2+byv),ex);
+			e.initPos(x,y,(xv*k+yv*rnd_gaussion()*0.2+bxv)*k0,(yv*k-xv*rnd_gaussion()*0.2+byv)*k0,ex);
 			e.add();
 		}
 		fuel=0;

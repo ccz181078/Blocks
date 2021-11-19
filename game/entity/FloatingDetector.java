@@ -5,7 +5,7 @@ import static util.MathUtil.*;
 import game.item.*;
 import util.BmpRes;
 
-public final class FloatingDetector extends Agent implements DroppedItem.Picker{
+public class FloatingDetector extends Agent implements DroppedItem.Picker{
 	private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Entity/FloatingDetector");
 	public BmpRes getBmp(){return bmp;}
@@ -56,4 +56,3 @@ public final class FloatingDetector extends Agent implements DroppedItem.Picker{
 	}
 
 }
-

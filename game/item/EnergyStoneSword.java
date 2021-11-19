@@ -17,9 +17,9 @@ public class EnergyStoneSword extends EnergyTool{
 	@Override
 	public void onAttack(Entity e,Source src){
 		if(s>0&&(e instanceof Agent)){
-			e.onAttackedByEnergy(s/2,src);
-			e.onAttacked(s/2,src,this);
-			s=0;
+			e.onAttackedByEnergy(s/4,src);
+			e.onAttacked(s/4,src,this);
+			s/=2;
 		}
 		++damage;
 	}

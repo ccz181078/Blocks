@@ -38,7 +38,7 @@ private static final long serialVersionUID=1844677L;
 			cd=16;
 			++damage;
 			Entity ball=new ThrowedItem(0,0,item.popItem());
-			Agent.temp(w,game.entity.SourceTool.make(w,"使用"+getName())).throwEnt(ball,s,mv2());
+			Agent.temp(w,game.entity.SourceTool.use(w,getName())).throwEnt(ball,s,mv2());
 		}else{
 			w.throwEnt(new ThrowedItem(0,0,item.get().clone()),s,mv2());
 		}
@@ -58,7 +58,7 @@ private static final long serialVersionUID=1844677L;
 	
 	@Override
 	public boolean autoUse(Human h,Agent a){
-		if(cd>0)return true;
+		if(cd>0)return rnd()<0.5;
 		if(item.isEmpty()){
 			SingleItem ss[]=h.items.toArray();
 			for(int t=0;t<30;++t){

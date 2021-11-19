@@ -24,6 +24,9 @@ public class UI_ItemList extends UI_Group{
 	public UI_ItemList(ShowableItemContainer _il,UI_ItemList _il2){
 		this(0,0,4,8,_il,_il2);
 	}
+	public UI_ItemList(ShowableItemContainer _il,UI_ItemList _il2,int w){
+		this(0,0,w,8,_il,_il2);
+	}
 	
 	//左上角坐标，宽高，物品列表（容量不能为0），绑定的物品列表界面（允许null）
 	//如果绑定了物品列表界面，点击时会向界面传物品

@@ -52,7 +52,7 @@ public class BloodBall extends Ball{
 		if(a.hp>0){
 			BloodBall b=new BloodBall(a,min(hp,a.hp));
 			b.add();
-			a.loseHp(hp,SourceTool.make(src,"的吸血效果"));
+			a.loseHp(hp,SourceTool.blood(src));
 			return b;
 		}
 		return null;

@@ -1,7 +1,8 @@
 package game.item;
 
 import util.BmpRes;
-import static util.MathUtil.*;import game.entity.*;
+import static java.lang.Math.*;
+import static util.MathUtil.*;
 import game.entity.*;
 import game.block.*;
 import game.world.*;
@@ -13,43 +14,17 @@ public class BlockActivator extends Tool{
 	private static BmpRes bmp=new BmpRes("Item/BlockActivator");
 	public BmpRes getBmp(){return bmp;}
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
-	BlockAt ba=null;
-	long last_pick_time;
-	int picking_time=0;
-	/*@Override
-	public void drawTip(graphics.Canvas cv,Player pl){
-		if(ba!=null){
-			double c=picking_time/(ba.block.maxDamage()+30.);
-			cv.save();
-			cv.translate((float)(ba.x-pl.x),(float)(ba.y-pl.y));
-			game.ui.UI.drawProgressBar(cv,0x6000ffff,0x3000ffff,(float)c,0,0,1,1);
-			cv.restore();
+	
+	public Item clickAt(double x,double y,Agent w){
+		if(max(abs(x-w.x),abs(y-w.y))>4)return this;
+		int px=f2i(x),py=f2i(y);
+		Block b=World.cur.get(px,py).deStatic(px,py);
+		if(b.fallable()&&b.isSolid()){
+			damage+=b.maxHp();
+			new BlockAgent(b).initPos(px+0.5,py+0.5,0,0,SourceTool.place(w)).add();
+			World.cur.setVoid(px,py);
 		}
+		return this;
 	}
-	@Override
-	public void onCarried(Agent a){
-		if(last_pick_time+1<World.cur.time)ba=null;
-	}
-	@Override
-	public boolean onLongPress(Agent w,double tx,double ty){
-		if(abs(tx-w.x)>4||abs(ty-w.y)>4)return false;
-		int x=f2i(tx),y=f2i(ty);
-		Block b=World.cur.get(x,y);
-		if(ba!=null){
-			if(ba.x!=x||ba.y!=y||ba.block!=b)ba=null;
-			else{
-				last_pick_time=World.cur.time;
-				++picking_time;
-				if(picking_time>=ba.block.maxDamage()+30){
-					World.cur.get(ba.x,ba.y).fall();
-				}
-			}
-		}else if(b.fallable()&&b.isSolid()){
-			last_pick_time=World.cur.time;
-			picking_time=0;
-			ba=new BlockAt(x,y,b);
-		}
-		return true;
-	}*/
 }
 

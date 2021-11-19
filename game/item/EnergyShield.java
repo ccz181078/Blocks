@@ -12,13 +12,12 @@ public class EnergyShield extends IronShield implements DefaultEnergyContainer,D
 		if(hasEnergy(v)){
 			loseEnergy(v);
 			//damage+=rf2i(a.val*0.1);
-			a.val*=0.1;
+			a.val*=0.2;
 			return a;
 		}
 		return super.transform(a);
 	}
 	/*extends EnergyTool*/
-	public BmpRes getUseBmp(){return use_btn;}
 	SpecialItem<EnergyCell> ec=new SpecialItem<EnergyCell>(EnergyCell.class);
 	public ShowableItemContainer getItems(){return ec;}
 	public EnergyContainer getEnergyContainer(){return ec.get();}

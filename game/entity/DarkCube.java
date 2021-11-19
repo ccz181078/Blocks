@@ -63,7 +63,9 @@ public class DarkCube extends DarkBall implements AttackFilter{
 		}
 	}
 	
+	protected int getColor(){return 0xff800080;}
 	public void draw(Canvas cv){
+		int col=getColor();
 		int n=model.length/3;
 		float[] xys=new float[n*2];
 		float x=0,y=0,z=0,zn;
@@ -77,6 +79,23 @@ public class DarkCube extends DarkBall implements AttackFilter{
 			xys[i*2]=(cy*x+sy*z)/2*(float)width();
 			xys[i*2+1]=(-sx*y+cx*zn)/2*(float)height();
 		}
-		cv.drawLines(xys,0xff800080);
+		cv.drawLines(xys,col);
+	}
+}
+
+class GoldCube extends DarkCube{
+	protected int getColor(){return 0xffffcc00;}
+	@Override
+	void touchAgent(Agent a){
+		if(hp<=0)return;
+		if(a instanceof Human){
+			((Human)a).money+=hp*0.2;
+			hp=0;
+		}
+	}
+	@Override
+	public void update(){
+		super.update();
+		hp-=0.3;
 	}
 }

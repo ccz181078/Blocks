@@ -4,6 +4,7 @@ import util.*;
 import game.block.Block;
 import game.entity.*;
 import game.world.World;
+import static java.lang.Math.*;
 
 public class BlockFillTool extends Tool implements DefaultItemContainer{
 	private static final long serialVersionUID=1844677L;
@@ -32,9 +33,10 @@ public class BlockFillTool extends Tool implements DefaultItemContainer{
 	}
 	@Override
 	public boolean onLongPress(Agent a,double tx,double ty){
+		if(max(abs(tx-a.x),abs(ty-a.y))>4)return true;
 		Item b=block.popItem();
 		if(b!=null){
-			if(b instanceof BlockItem)b=b.clickAt(tx,ty,a);
+			b=b.clickAt(tx,ty,a);
 			if(b==null)++damage;
 			else block.insert(b);
 		}

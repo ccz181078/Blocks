@@ -12,10 +12,12 @@ public class ShockWave extends Ball{
 	public ShockWave(){
 		hp=10;
 	}
+	public double radius(){return 0.3;}
 	public boolean isPureEnergy(){return true;}
 	public double mass(){return 0.1;}
 	public double hardness(){return game.entity.NormalAttacker.HD;}
 	double _fc(){return 3e-3;}
+	public boolean shouldKeepAwayFrom(){return true;}
 	@Override
 	public double RPG_ExplodeProb(){return 0;}
 	boolean chk_ent=false;
@@ -48,11 +50,7 @@ public class ShockWave extends Ball{
 			}
 			hp-=s;
 			if(b.fallable()){
-				World.cur.setAir(px,py);
-				Entity e=new FallingBlock(px,py,b);
-				e.xv=xv;
-				e.yv=yv;
-				e.add();				
+				b.fall(px,py,xv,yv);
 			}else{
 				b.des(px,py,3,this);
 			}
@@ -61,9 +59,10 @@ public class ShockWave extends Ball{
 	@Override
 	public void update(){
 		super.update();
-		if(rnd()<0.1)chk_ent=true;
+		if(rnd()<0.05)chk_ent=true;
 		double v=min(1,hypot(xv,yv)*(sqrt(hp/10)))*0.2+hp*hp*1e-5;
 		hp-=0.04/(hypot(xv,yv)+0.01);
+		if(!chk_ent)return;
 		if(rnd()<v)new Smoke().initPos(x,y,xv,yv,null).add();
 		if(rnd()<0.2){
 			double v1=hypot(xv,yv)+1e-8;

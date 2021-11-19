@@ -16,7 +16,7 @@ private static final long serialVersionUID=1844677L;
 	public int maxAmount(){return 4;}
 	@Override
 	public void onLaunchAtPos(game.entity.Agent a,int dir,double x,double y,double slope,double mv2){
-		explode(x,y,dir,slope*dir,a.xv,a.yv,true,a);
+		explode(x,y,dir,slope*dir,a.xv,a.yv,true,SourceTool.explode(SourceTool.launch(a.getLaunchSrc(),getName())));
 	}
 	public static void explode(double x,double y,double xv,double yv,double xv0,double yv0,boolean flag,Source src){
 		double v=sqrt(xv*xv+yv*yv+1e-8);

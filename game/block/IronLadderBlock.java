@@ -13,11 +13,7 @@ public class IronLadderBlock extends IronBasedType{
 	public double transparency(){return 0.1;}
 	public boolean isSolid(){return false;}
 	public void touchEnt(int x,int y,Entity ent){
-		/*double k=intersection(x,y,ent);
-		ent.f+=k*0.4;
-		ent.inblock+=k;
-		ent.anti_g+=k*8;*/
-		if(ent instanceof Agent && ((Agent)ent).ydir!=-1)ent.climbable=true;
+		onLadderTouchEnt(x,y,ent);
 		super.touchEnt(x,y,ent);
 	}
 	double friction(){return 0.5;}

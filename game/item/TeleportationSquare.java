@@ -6,6 +6,7 @@ import game.block.*;
 import game.world.*;
 import static java.lang.Math.*;
 import static util.MathUtil.*;
+import game.world.StatMode.StatResult;
 
 public class TeleportationSquare extends Tool{
 	private static final long serialVersionUID=1844677L;
@@ -16,6 +17,11 @@ public class TeleportationSquare extends Tool{
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 	@Override
 	public BmpRes getUseBmp(){return field_btn;}
+	@Override
+	public double getPrice(StatResult result,boolean is_max){
+		if(is_max||damage==0)return super.getPrice(result,is_max);
+		return 0;
+	}
 	@Override
 	public void onUse(Human a){
 		a.getCarriedItem().insert(this);
@@ -51,12 +57,15 @@ class TeleportationEvent extends Event{
 		new SetRelPos(target,target,target.xdir*0.2,target.ydir*0.2);
 		--time;
 		++item.damage;
-		if(time<0||!target.teleporting){
+		if(time<0||!target.teleporting||!target.hasEnergy(1)){
 			item.damage+=152;
 			target.teleporting=false;
 			target.xv=target.yv=0;
 			target.xa=target.ya=0;
 			target.xv0=target.yv0=0;
-		}else add(1);
+		}else{
+			if(time%4==0)target.loseEnergy(1);
+			add(1);
+		}
 	}
 }

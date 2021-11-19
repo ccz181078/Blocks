@@ -28,7 +28,25 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 	public double money=0;
 	public int kill_cnt=0;
 	public long last_eat_time;
-	
+	public Armor cur_armor=null;
+	public boolean recover_item=false;
+	@Override
+	public boolean chkRigidBody(){
+		Armor ar=armor.get();
+		if(ar!=null)return ar.chkRigidBody();
+		return true;
+	}
+	@Override
+	public double fluidResistance(){
+		double v=super.fluidResistance();
+		Armor ar=armor.get();
+		if(ar!=null)v*=ar.fluidResistance();
+		return v;
+	}
+	@Override
+	public BmpRes getCtrlBmp(){
+		return new BmpRes("Entity/"+getClass().getSimpleName());
+	}
 	@Override
 	public void initUI(game.ui.UI_MultiPage ui){
 		ItemList ar=ItemList.create(armor,shoes);
@@ -54,8 +72,13 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		return name;
 	}
 	
-	public double maxHp(){return 40+kill_cnt*(kill_cnt+10);}
-	public double maxXp(){return 100;}
+	public double maxHp(){
+		double v=World.cur.setting.human_max_hp;
+		v+=World.cur.setting.human_max_hp_c1*kill_cnt;
+		v+=World.cur.setting.human_max_hp_c2*kill_cnt*kill_cnt;
+		return v;
+	}
+	public double maxXp(){return World.cur.setting.human_max_xp;}
 	public double mass(){
 		double m=1;
 		Armor ar=armor.get();
@@ -120,20 +143,31 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 	public void dropArmor(){
 		DroppedItem.dropItems(getCarriedItem().pop(),x,y);
 		if(!armor.isEmpty()){
-			if(armor.get().isClosed())new VehiclePlaceHolder(x,y,armor.popItem()).initPos(x,y,xv,yv,SourceTool.make(this,"死后掉落的")).add();
+			if(armor.get().isClosed())new VehiclePlaceHolder(x,y,armor.popItem()).initPos(x,y,xv,yv,SourceTool.dropOnDead(this)).add();
 			else DroppedItem.dropItems(armor,x,y);
 		}
 		DroppedItem.dropItems(shoes,x,y);
 	}
 	public double getPrice(StatResult result){
 		double s=money;
-		for(SingleItem si:items.toArray())s+=si.getPrice(result);
-		for(SingleItem si:bag_items.toArray())s+=si.getPrice(result);
-		s+=armor.getPrice(result);
-		s+=shoes.getPrice(result);
+		for(SingleItem si:items.toArray())s+=si.getPrice(result,false);
+		for(SingleItem si:bag_items.toArray())s+=si.getPrice(result,false);
+		s+=armor.getPrice(result,false);
+		s+=shoes.getPrice(result,false);
 		return s;
 	}
-	
+	public void forceSell(StatResult result){
+		for(SingleItem si:items.toArray()){
+			if(money>=0)return;
+			money+=si.getPrice(result,false);
+			si.clear();
+		}
+		for(SingleItem si:bag_items.toArray()){
+			if(money>=0)return;
+			money+=si.getPrice(result,false);
+			si.clear();
+		}
+	}
 	protected double getArmorRate(){
 		double r=1;
 		Armor ar=armor.get();
@@ -193,9 +227,43 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		}
 		items.getSelected().insert(w);
 	}
+	public class RecoverItem{
+		Item old=null,it=null;
+		int cnt=0;
+		GameMode mode=World.cur.getMode();
+		double cost=0;
+		public RecoverItem(Item it){
+			this.it=it;
+			if(recover_item&&it!=null&&!it.disableRecover()){
+				old=util.SerializeUtil.deepCopy(it);
+				cnt=getCarriedItem().getAmount()+1;
+				if(mode instanceof PvPMode){
+					cost+=old.getPrice(((PvPMode)mode).getStat(),false)*cnt;
+				}
+			}
+		}
+		public void end(){
+			if(recover_item&&old!=null){
+				if(it instanceof EnergyLauncher){
+					((EnergyLauncher)old).copyCd((EnergyLauncher)it);
+				}
+				if(mode instanceof PvPMode){
+					cost-=getCarriedItem().getPrice(((PvPMode)mode).getStat(),false);
+					if(cost>=0&&cost<=money){
+						money-=cost;
+						getCarriedItem().set(old,cnt);
+					}
+				}else{
+					getCarriedItem().set(old,cnt);
+				}
+			}
+		}
+	}
 	public void setDes(double tx,double ty){
 		teleporting=false;
 		Item it=items.getSelected().popItem();
+		RecoverItem ri=new RecoverItem(it);
+		
 		if(it!=null&&it.useInArmor()){
 			if(it.onLongPress(this,tx,ty)){
 				items.getSelected().insert(it);
@@ -205,20 +273,18 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		items.getSelected().insert(it);
 		
 		Armor ar=armor.get();
-		if(ar!=null&&ar.onArmorLongPress(this,tx,ty))return;
-		
-		it=items.getSelected().popItem();
-		if(it!=null){
-			if(it.onLongPress(this,tx,ty)){
+		if(ar!=null&&ar.onArmorLongPress(this,tx,ty));
+		else{
+			it=items.getSelected().popItem();
+			if(it!=null&&it.onLongPress(this,tx,ty)){
 				items.getSelected().insert(it);
-				return;
+			}else{
+				items.getSelected().insert(it);
+				dir=(tx>x?1:-1);
+				super.setDes(tx,ty);
 			}
-			items.getSelected().insert(it);
 		}
-		
-		dir=(tx>x?1:-1);
-		
-		super.setDes(tx,ty);
+		ri.end();
 	}
 	public void clickAt(double tx,double ty){
 		dir=(tx>x?1:-1);
@@ -228,22 +294,27 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 			Block b=World.cur.get(px,py);
 			if(b instanceof StaticBlock)((StaticBlock)b).deStatic(px,py);
 			
+			
 			Item it=items.getSelected().popItem();
+			RecoverItem ri=new RecoverItem(it);
+			
 			if(it!=null&&it.useInArmor()){
 				it=it.clickAt(tx,ty,this);
 				items.getSelected().insert(it);
-				return;
+			}else{
+				items.getSelected().insert(it);
+				
+				Armor ar=armor.get();
+				if(ar!=null&&ar.onArmorClick(this,tx,ty));
+				else{
+					it=items.getSelected().popItem();
+					if(it==null)new AirBlock().click(tx,ty,this);
+					else it=it.click(tx,ty,this);
+					items.getSelected().insert(it);
+				}
 			}
-			items.getSelected().insert(it);
 			
-			Armor ar=armor.get();
-			if(ar!=null&&ar.onArmorClick(this,tx,ty))return;
-			
-			it=items.getSelected().popItem();
-			if(it==null)new AirBlock().click(tx,ty,this);
-			else it=it.click(tx,ty,this);
-			items.getSelected().insert(it);
-		//}
+			ri.end();
 	}
 	public boolean eat(Item it){
 		if(last_eat_time>=World.cur.time)return false;
@@ -253,7 +324,17 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		UsingItem.gen(0.3,0.3,t,it,this);
 		return true;
 	}
-	
+	@Override
+	public boolean rotByVelDir(){
+		Armor ar=armor.get();
+		if(ar!=null)return ar.rotByVelDir();
+		return false;
+	}
+	@Override
+	public float getRotation(){
+		if(rotByVelDir())return (float)(a*180/PI);
+		return 0;
+	}
 	public void attack(){
 		attack_flag=true;
 	}
@@ -263,8 +344,8 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		if(ar!=null)v=ar.onImpact(this,v);
 		Shoes sh=shoes.get();
 		if(sh!=null)v=sh.onImpact(this,v);
-		Item item=items.getSelected().get();
-		if(item instanceof DefendTool)v=((DefendTool)item).onImpact(this,v);
+		//Item item=items.getSelected().get();
+		//if(item instanceof DefendTool)v=((DefendTool)item).onImpact(this,v);
 		return v;
 	}
 	@Override
@@ -275,7 +356,7 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		double v0=v;
 		Armor ar=armor.get();
 		if(ar!=null)v=ar.getJumpAcc(this,v);
-		return max(v0,v/mass());
+		return max(min(v0,v),v/mass());
 	}
 	@Override
 	public void update(){
@@ -310,7 +391,7 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 			Item w0=items.popItem();
 			Item w=w0==null?new AirBlock():w0;
 			
-			Source info=SourceTool.make(this,"手持的");
+			Source info=SourceTool.hold(this);
 			double xd=(width()+0.32),yd=0;
 			if(w instanceof LongItem){
 				xd+=0.3;
@@ -377,6 +458,18 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 			shoes.insert(sh.update(this));
 		}
 		
+		if(armor.get()!=cur_armor){
+			cur_armor=armor.get();
+			if(cur_armor!=null){
+				int cost=cur_armor.wearEnergyCost();
+				if(hasEnergy(cost)){
+					loseEnergy(cost);
+				}else{
+					DroppedItem.dropItems(armor,x,y);
+					cur_armor=null;
+				}
+			}
+		}
 		
 	}
 	abstract BmpRes bodyBmp();
@@ -446,10 +539,12 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		else defaultDrawHuman(cv);
 		
 		super.draw(cv);
-		if(name!=null/*&&!(World.cur.getMode() instanceof game.world.ECPvPMode)*/){
+		if(name!=null&&(World.cur.setting.show_human_name)){
 			cv.save();{
-				cv.scale(1,-1);
-				cv.drawText(name+":"+kill_cnt,0,-h-0.4f,0.4f,0);
+				float k=World.cur.setting.BW/12f;
+				cv.translate(0,h+0.4f*k);
+				cv.scale(k,-k);
+				cv.drawText(name+":"+kill_cnt,0,0,0.4f,0);
 			}cv.restore();
 		}
 	}
@@ -501,7 +596,14 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 
 	@Override
 	public void pick(DroppedItem item){
-		if(pickup_state==0)getItems().insert(item.item);
+		if(pickup_state==0){
+			getItems().insert(item.item);
+			if(!item.item.isEmpty()){
+				for(SingleItem si:bag_items.toArray()){
+					if(!si.isEmpty())si.insert(item.item);
+				}
+			}
+		}
 		if(pickup_state==1)items.getSelected().insert(item.item);
 	}
 
@@ -511,7 +613,7 @@ public abstract class Human extends Agent implements Crafter,DroppedItem.Picker{
 		if(ar instanceof EnergyArmor||name!=null){
 			World.showText(">>> "+getName()+"死于"+src);
 			Agent a=src.getSrc();
-			if(a instanceof Human){
+			if(a instanceof Human&&a!=this){
 				Human w=(Human)a;
 				World.showText(">>> "+w.getName()+"击杀了"+(++w.kill_cnt)+"人");
 			}

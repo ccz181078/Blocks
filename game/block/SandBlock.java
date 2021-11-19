@@ -23,4 +23,17 @@ private static final long serialVersionUID=1844677L;
 			World.cur.place(x,y+1,new CactusBlock());
 		}
 	}
+	public boolean onUpdate(int x,int y){
+		if(super.onUpdate(x,y))return true;
+		if(rnd()<0.008){
+			int x1=x+rndi(-1,1),y1=y+rndi(-1,1);
+			int x2=x+rndi(-1,1),y2=y+rndi(-1,1);
+			if(World.cur.get(x1,y1).rootBlock() instanceof DirtBlock)
+			if(World.cur.get(x2,y2).rootBlock() instanceof DirtBlock){
+				World.cur.set(x,y,new DirtBlock());
+				return true;
+			}
+		}
+		return false;
+	}
 };

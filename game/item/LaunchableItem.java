@@ -13,4 +13,5 @@ private static final long serialVersionUID=1844677L;
 	}
 	protected abstract Entity toEnt();
 	public Entity asEnt(){return toEnt();}
+	public double launchValue(){return 10;}
 }

@@ -11,6 +11,7 @@ private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/ExplosiveBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 100;}
+	public double getFallHp(){return 10;}
 	
 	public boolean circuitCanBePlaced(){return false;}
 	@Override

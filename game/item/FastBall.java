@@ -38,7 +38,7 @@ public class FastBall extends Vehicle{
 	int mode=0;
 	public Entity test_shoot(Human hu,double a,Item ammo){
 		Entity.beginTest();
-		double x=hu.x+2*cos(a),y=hu.y+2*sin(a);
+		double x=hu.x+1.6*cos(a),y=hu.y+1.6*sin(a);
 		double b=tan(a);
 		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x,y,b,mv2());
 		return Entity.endTest();
@@ -54,10 +54,6 @@ public class FastBall extends Vehicle{
 		Item ammo = hu.items.getSelected().popItem();
 		cd=getCd(hu.xv*hu.xv+hu.yv*hu.yv,ammo);
 		double x=hu.x+1.6*cos(a),y=hu.y+1.6*sin(a);
-		//Spark s=new Spark(0,0);
-		//s.initPos(x,y,hu.xv,hu.yv,hu);
-		//s.hp*=0.5;
-		//s.add();
 		ammo.onLaunchAtPos(hu,a>PI/2?-1:1,x,y,b,mv2());
 		loseEnergy(energyCost());
 	}
@@ -97,8 +93,11 @@ public class FastBall extends Vehicle{
 		if(a<-PI/2)a+=2*PI;
 		if(a>PI*1.5)a-=2*PI;
 	}
+	
+	int rot_time=0;
 	public boolean onArmorLongPress(Human hu,double tx,double ty){
 		if(!hasEnergy(5))return true;
+		rot_time=5;
 		double xd=tx-hu.x,yd=ty-hu.y;
 		if(rnd()<0.01){loseEnergy(1);damage+=1;}
 		if(abs(yd)+abs(xd)>0.001){
@@ -116,14 +115,24 @@ public class FastBall extends Vehicle{
 			else if(b<a)a-=0.1;
 			else a+=0.1;*/
 			if(World.cur.get(hu.x+1.2*cos(a),hu.y+1.2*sin(a)).rootBlock().isSolid())a=a0;
-			if(abs(d)<0.3)shoot(hu,a,tan(a));
+			if(abs(d)<0.3&&hu.getCarriedItem().getAmount()>1)shoot(hu,a,tan(a));
 		}
 		return true;
 	}
 	
 	public void onUpdate(Human w){
 		if(!hasEnergy(1))return;
-		
+		{
+			if(rot_time>0){
+				--rot_time;
+				if(w.getCarriedItem().getAmount()!=1)rot_time=0;
+			}
+			if(rot_time>0){
+				double c=cos(a),s=sin(a),r=1.6;
+				double x=c*r,y=s*r;
+				updateRotatingItem(w,w.getCarriedItem(),x,y);
+			}
+		}
 		{
 			double ax=cos(a0),ay=sin(a0);
 			double c=(ax*w.yv-ay*w.xv);
@@ -212,6 +221,12 @@ public class FastBall extends Vehicle{
 	
 	@Override
 	public void draw(graphics.Canvas cv,Human hu){
+		if(rot_time>0){
+			double c=cos(a),s=sin(a),r=1.6;
+			double x=c*r,y=s*r;
+			drawRotatingItem(cv,hu.getCarriedItem(),x,y);
+		}
+		
 		cv.save();{
 			cv.rotate((float)(a*180/PI));
 			getGunBmp().draw(cv,0.4f,0,0.8f,0.08f);
@@ -219,15 +234,13 @@ public class FastBall extends Vehicle{
 		cv.save();{
 			cv.rotate((float)(a0*180/PI-90));
 			bmp[1].draw(cv,0,0,(float)width(),(float)height());
-			cv.save();{
-			cv.rotate((float)(90));
-			float x = 0.2f;
-			if(hu.xv*hu.xv+hu.yv*hu.yv>0.2)
-				x += ( hu.xv*hu.xv+hu.yv*hu.yv - 0.2 );
-			else
-				x = 0;
-			getJetBmp().draw(cv,-(0.8f+x),0,x,0.36f);
-			}cv.restore();
+			if(hasEnergy(5)&&(hu.xdir!=0||hu.ydir!=0)){
+				cv.save();{
+				cv.rotate((float)(90));
+				float x=0.2f+max(0,(float)(hu.xv*hu.xv+hu.yv*hu.yv-0.2));
+				getJetBmp().draw(cv,-(0.8f+x),0,x,0.36f);
+				}cv.restore();
+			}
 			if(mode==1)getBmp().draw(cv,0,0,(float)width(),(float)height());
 		}cv.restore();
 		if(mode==0)

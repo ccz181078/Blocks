@@ -93,6 +93,7 @@ public class Craft implements java.io.Serializable{
 		return c;
 	}
 	public boolean check(Crafter p){
+		if(!World.cur.setting.enable_craft)return false;
 		if(p.getEnergy()<cost.energy)return false;
 		if((p.getCraftType()&cost.type)!=cost.type)return false;
 		SingleItem si[]=p.getItems().toArray();
@@ -139,13 +140,13 @@ public class Craft implements java.io.Serializable{
 	}
 	
 	
-	private static <T> T[] concatAll(T[] first, T[]... rest) {
-		int totalLength = first.length;
+	private static <T> T[] concatAll(T[]... rest) {
+		int totalLength = 0;
 		for (T[] array : rest) {
 			totalLength += array.length;
 		}
-		T[] result = Arrays.copyOf(first, totalLength);
-		int offset = first.length;
+		T[] result = Arrays.copyOf(rest[0], totalLength);
+		int offset = 0;
 		for (T[] array : rest) {
 			System.arraycopy(array, 0, result, offset, array.length);
 			offset += array.length;
@@ -160,6 +161,7 @@ public class Craft implements java.io.Serializable{
 		new QuartzHammer(),
 		new CrystalHammer(),
 		new CactusHammer(),
+		new HDHammer(),
 		new IronPickax(),
 		new IronAx(),
 		new IronShovel(),
@@ -191,23 +193,25 @@ public class Craft implements java.io.Serializable{
 		new Spanner(),
 		new BlockFillTool(),
 		//new HookRope(),
+		new BlockActivator(),
 		
 		new EnergyPickax(),
 		new EnergySword(),
-		
-		new IronPatch(),
-		new EnergyPatch(),
+
 		new ItemSlot(),
 		new ItemSlotLock(),
+		new Copy(),
 		new LevelEnd(),
 	},_normal_armor={
 		new WoodenArmor(),
 		new CactusArmor(),
+		new StoneArmor(),
 		new GlassArmor(),
 		new IronArmor(),
 		new IronNailArmor(),
 		new QuartzArmor(),
 		new DiamondArmor(),
+		new HDArmor(),
 		new GreenArmor(),
 		new BloodArmor(),
 		new BloodNailArmor(),
@@ -228,6 +232,7 @@ public class Craft implements java.io.Serializable{
 		new EnergyStoneShield(),
 		
 		new BigWoodenShield(),
+		new BigCactusShield(),
 		new BigIronShield(),
 		new BigIronNailShield(),
 		new BigHDShield(),
@@ -243,7 +248,7 @@ public class Craft implements java.io.Serializable{
 		new ClimberShoes(),
 	};
 	public static Item[] 
-	_normal_tool=concatAll(
+	_normal_tools[]={
 		_physics_tool,
 		_energy_sword,
 		_bow,
@@ -251,15 +256,17 @@ public class Craft implements java.io.Serializable{
 		_normal_armor,
 		_normal_shield,
 		_normal_shoes
-	),_functional_block={
+	},_normal_tool=concatAll(_normal_tools),
+	_craft_block={
 		new WoodenWorkBenchBlock(),
 		new IronWorkBenchBlock(),
-		new WoodenBoxBlock(),
-		new IronBoxBlock(),
-		new DarkBoxBlock(),
 		new FurnaceBlock(),
 		new BlockMakerBlock(),
 		
+		new EnergyFurnaceBlock(),
+		new CompresserBlock(),
+		new PulverizerBlock(),
+	},_build_block={
 		new TorchBlock(),
 		new EnergyTorchBlock(),
 		
@@ -275,29 +282,36 @@ public class Craft implements java.io.Serializable{
 		
 		new WoodenDoorBlock(),
 		new IronDoorBlock(),
+		new Door(),
 		
+		new TeleportationBlock(),
+	},_item_block={
+		new WoodenBoxBlock(),
+		new IronBoxBlock(),
+		new DarkBoxBlock(),
 		new ConveyorBeltBlock(),
 		new ItemAbsorberBlock(),
 		new ItemExporterBlock(),
-		
-		new EnergyFurnaceBlock(),
-		new CompresserBlock(),
-		new PulverizerBlock(),
+	},_other_machine_block={
 		new RepairerBlock(),
 		new LauncherBlock(),
 		new RespawnBlock(),
 		new AutoCraftBlock(),
 		new LightCollectorBlock(),
 		new AgentEnergyCollectorBlock(),
-		
+		new FloatingBlock(),
+	},_explosive_block={
 		new ExplosiveBlock(),
 		new Mine(),
 		new HDEnergyStoneBlock(),
-		
-		new TeleportationBlock(),
-		
-	},_normal_block={
-
+	},_functional_blocks[]={
+		_craft_block,
+		_build_block,
+		_item_block,
+		_other_machine_block,
+		_explosive_block,
+	},_functional_block=concatAll(_functional_blocks),
+	_stone_block={
 		new StoneBlock(),
 		new QuartzBlock(),
 		new CrystalBlock(),
@@ -311,6 +325,8 @@ public class Craft implements java.io.Serializable{
 		
 		new ImprovedStoneBlock(),
 		new ImprovedQuartzBlock(),
+		new HDBlock(),
+		new GlassBlock(),
 		
 		new EnergyStoneBlock(),
 		new HeatBlock(),
@@ -318,14 +334,21 @@ public class Craft implements java.io.Serializable{
 		new GreenBlock(),
 		new BloodBlock(),
 		
-		new StonePowderBlock(),
-		new GlassBlock(),
-		
 		new BedRockBlock(),
-		new ReactionBlock(),
-		new SmokeBlock(),
-		new GlueBlock(),
-		
+	},_ore_block={
+		new CoalOreBlock(),
+		new QuartzOreBlock(),
+		new IronOreBlock(0),
+		new IronOreBlock(1),
+		new IronOreBlock(2),
+		new EnergyStoneOreBlock(0),
+		new EnergyStoneOreBlock(1),
+		new EnergyStoneOreBlock(2),
+		new GoldOreBlock(),
+		new DiamondOreBlock(),
+		new BloodStoneBlock(),
+		new BlueCrystalOreBlock(),		
+	},_plant_block={
 		new TrunkBlock(),
 		new LeafBlock(0),
 		new LeafBlock(1),
@@ -341,35 +364,40 @@ public class Craft implements java.io.Serializable{
 		new Algae(),
 		new AquaticGrass(),
 		new EnergyPlantBlock(),
-		
-		new CoalOreBlock(),
-		new QuartzOreBlock(),
-		new IronOreBlock(0),
-		new IronOreBlock(1),
-		new IronOreBlock(2),
-		new EnergyStoneOreBlock(0),
-		new EnergyStoneOreBlock(1),
-		new EnergyStoneOreBlock(2),
-		new GoldOreBlock(),
-		new DiamondOreBlock(),
-		new BloodStoneBlock(),
-		new BlueCrystalOreBlock(),
-		
+	},_dirt_block={
 		new DirtBlock(),
 		new SandBlock(),
 		new GravelBlock(),
-		//new EnergySandBlock(),
 		new DarkSandBlock(),
 		new SemilavaBlock(),
 		new ZombieSandBlock(),
-		
-		
+		new StonePowderBlock(),
+	},_liquid_block={
 		WaterBlock.getInstance(),
 		MutWaterBlock.getInstance(),
 		LavaBlock.getInstance(),
-	},_balls={
+	},_other_block={
+		new ReactionBlock(),
+		new AntiReactionBlock(),
+		new SmokeBlock(),
+		new GlueBlock(),
+		new TempEnergyBlock(),
+	},_normal_blocks[]={
+		_stone_block,
+		_ore_block,
+		_plant_block,
+		_dirt_block,
+		_liquid_block,
+		_other_block,
+	},_normal_block=concatAll(_normal_blocks),
+	_balls={
 		new StoneBall(),
+		new CactusBall(),
 		new IronBall(),
+		new BurningCoalBall(),
+		new Boomerang(),
+		new Glider(),
+		new Balloon(),
 		new ExplosiveBall(),
 		new ExplosiveIronNailBall(),
 		new EnergyStoneRing(),
@@ -383,12 +411,13 @@ public class Craft implements java.io.Serializable{
 		new BigIronBall(),
 		new BlocksBall(),
 		new BoundaryBall(),
+		new SpringBall(),
+		new SmallSpringBall(0),
+		new SmallSpringBall(1),
+		new SmallSpringBall(2),
+		new SmallSpringBall(3),
 		new IronBall_HD(),
 		new game.item.BlackHole(),
-		new game.item.HandGrenade(),
-	},_explosive_block={
-		new ExplosiveBlock(),
-		new HDEnergyStoneBlock(),
 	},_essence={
 		new BloodEssence(),
 		new PlantEssence(),
@@ -404,6 +433,7 @@ public class Craft implements java.io.Serializable{
 		new StoneBullet(),
 		new QuartzBullet(),
 		new Bullet(),
+		new GoldBullet(),
 		new DiamondBullet(),
 		new IronNail(),
 		new SpecialBullet(1),
@@ -411,6 +441,7 @@ public class Craft implements java.io.Serializable{
 		new SpecialBullet(3),
 		new SpecialBullet(4),
 		new SpecialBullet(5),
+		new HEAT_Bullet(),
 		new Bullet_HD(),
 		new DefendBullet(),
 		new FlakBullet(),
@@ -422,6 +453,7 @@ public class Craft implements java.io.Serializable{
 		new GreenGuidedBullet(),
 		new BloodGuidedBullet(),
 		new PathBullet(),
+		new TextGuidedBullet(),
 	},_rpg_normal={
 		new game.item.RPG_Empty(),
 		new game.item.RPG_Energy(),
@@ -432,10 +464,15 @@ public class Craft implements java.io.Serializable{
 		new game.item.RPG_WideRangeSpark(),
 		new game.item.RPG_Dark(),
 		new game.item.RPG_Dark_HE(),
+		new game.item.RPG_IronNail(),
+		new game.item.RPG_IronNail_Directed(),
 		new game.item.RPG_Blood(),
 		new game.item.RPG_Smoke(),
 		
 		new game.item.RPG_Bullet(),
+		new game.item.RPG_Directed(),
+		new game.item.RPG_Serial(),
+		new game.item.DarkRPG(),
 	},_rpg_guided={
 		new game.item.RPG_Guided(),
 		new game.item.RPG_EnergyBall(),
@@ -463,6 +500,8 @@ public class Craft implements java.io.Serializable{
 		new EnergyBarrier(),
 		new FireBarrier(),
 		new GreenBarrier(),
+		new Warhead_RPG(),
+		//new FastHEAT(),
 	},_bottle={
 		new Bottle(),
 		
@@ -475,19 +514,24 @@ public class Craft implements java.io.Serializable{
 		new WaterBottle(),
 		new GlueBottle(),
 		new FireBottle(),
-		new AirBottle(),
-	},_throwable_item=concatAll(
-		_balls,
-		_explosive_block,
-		_essence,
-		_arrow,
-		_bullet,
+		new game.item.HandGrenade(),
+		new game.item.HandGrenadeSlow(),
+	},_rpg_all=concatAll(
 		_rpg_normal,
 		_rpg_guided,
-		_tank_shell,
+		_tank_shell
+	),_launchable_small=concatAll(
+		_arrow,
+		_bullet,
+		_essence
+	),_throwable_items[]={
+		_balls,
+		_launchable_small,
+		_rpg_all,
 		_warhead,
 		_bottle
-	),_agent={
+	},_throwable_item=concatAll(_throwable_items),
+	_agent={
 		new AgentMaker(GreenMonster.class),
 		new AgentMaker(BloodMonster.class),
 		new AgentMaker(CactusMonster.class),
@@ -510,9 +554,11 @@ public class Craft implements java.io.Serializable{
 		new AgentMaker(FloatingBall.class),
 		new AgentMaker(FireBoss.class),
 		new AgentMaker(SpaceBoss.class),
+		new AgentMaker(GoldBoss.class),
 		new AgentMaker(CactusBoss.class),
 		new AgentMaker(FloatingDetector.class),
 		new AgentMaker(FloatingDetector_5.class),
+		new AgentMaker(DarkFloatingDetector.class),
 		new AgentMaker(Robot.class),
 		new AgentMaker(IronBall_HDX.class),
 	},_energy_cell={
@@ -543,12 +589,14 @@ public class Craft implements java.io.Serializable{
 		new ItemAbsorber(),
 		new AgentRef(),
 		new AgentRefReadonly(),
+		new Clicker(),
 		
 		new EntityPicker(),
 		new EnergyLifter(),
 		
 		new EnergyDrill(),
 		new DiamondEnergyDrill(),
+		new HDEnergyDrill(),
 		
 		new EnergyBoxingGlove(),
 	},_energy_launcher={
@@ -572,6 +620,7 @@ public class Craft implements java.io.Serializable{
 		new RPGLauncher(),
 		new RecoillessGun(),
 		new BallLauncher(),
+		new MeteoriteGenerator(),
 		new EnergyGun(),
 		new EnergyShotgun(),
 		new EnergySubmachineGun(),
@@ -581,11 +630,13 @@ public class Craft implements java.io.Serializable{
 		new JetPack(),
 		new FloatingPack(),
 		new EnergySkateBoard(),
+		new TempBlockShoes(),
 		//new ClimberStick(),
 		new EnergyShield(),
 	},_vehicle={
 		new Tank(),
 		new IronAirship(),
+		new IronAirshipSmall(),
 		new WoodenAirship(),
 		new GlassAirship(),
 		new IronAirshipFlank(),
@@ -601,12 +652,18 @@ public class Craft implements java.io.Serializable{
 		new Shilka(),
 		new Trebuchet(),
 		new FastBall(),
-		//new Ball8(),
+		new IronWheel(),
+		new HDBox(),
+		new LauncherWheel(),
+		new Ball8(),
+		new FluidBox(),
+		new GuidedBulletManager(),
 		
+		new PipelineTower(),
 		new FlakGun(),
 		new BowPipeline(),
 		new EnergyPipeline(),
-	},_energy_tool=concatAll(
+	},_energy_tools[]={
 		_energy_cell,
 		_field,
 		_others_energy_tool,
@@ -614,7 +671,8 @@ public class Craft implements java.io.Serializable{
 		_launcher,
 		_energy_armor,
 		_vehicle
-	),_circuit={
+	},_energy_tool=concatAll(_energy_tools),
+	_circuit={
 		new CircuitHolderBlock(),
 		new EnergyStoneBlock(),
 		
@@ -645,15 +703,23 @@ public class Craft implements java.io.Serializable{
 		
 		//new EnergyPowerContainerBlock(),
 		//new EnergyPowerPipelineBlock(),
-	},_normal_item={
+	},_food_item={
 		new Apple(),
 		new RedFlower(),
 		new PurpleFlower(),
 		new PurpleFruit(),
+		
 		new ZombieCrystal(),
 		
 		new BloodEssence(),
 		new PlantEssence(),
+		
+		new IronPatch(),
+		new EnergyPatch(),
+		
+		new AirBottle(),
+		
+	},_ore_item={
 		new EnergyStone(),
 		new FireBall(),
 		new DarkBall(),
@@ -671,6 +737,7 @@ public class Craft implements java.io.Serializable{
 		
 		new Gold(),
 		new Iron(),
+	},_mid_item={
 		new IronNail(),
 		new IronStick(),
 		new FireStick(),
@@ -686,9 +753,13 @@ public class Craft implements java.io.Serializable{
 		
 		new DarkSquare(),
 		
-		new Book(),
 		new Paper(),
-	};
+		new Book(),
+	},_normal_items[]={
+		_food_item,
+		_ore_item,
+		_mid_item,
+	},_normal_item=concatAll(_normal_items);
 	
 	//物品合成方案总表
 	public static Object[][] 
@@ -712,6 +783,12 @@ public class Craft implements java.io.Serializable{
 			new CactusBlock(),
 			new CraftInfo(50,5,0),
 			new CactusHammer(),
+		},{
+			new HDBlock(),
+			new IronStick(),
+			new EnergyStone().setAmount(4),
+			new CraftInfo(1000,5000,_compress),
+			new HDHammer(),
 		},{
 			new Stick(),
 			new Iron().setAmount(3),
@@ -754,6 +831,13 @@ public class Craft implements java.io.Serializable{
 			new BlueCrystal().setAmount(2),
 			new CraftInfo(400,20,_energy),
 			new BlueCrystalSword(),
+		},{
+			new IronStick(),
+			new Iron().setAmount(4),
+			new EnergyMotor(),
+			new EnergyStone().setAmount(2),
+			new CraftInfo(800,20,_energy),
+			new EnergyStoneSword(),
 		},{
 			new IronStick(),
 			new EnergyStone().setAmount(2),
@@ -849,6 +933,12 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(300,15,_energy),
 			new EnergySkateBoard()
 		},{
+			new SpringShoes(),
+			new Iron().setAmount(2),
+			new EnergyMotor(),
+			new CraftInfo(300,15,_energy),
+			new TempBlockShoes()
+		},{
 			new Iron().setAmount(2),
 			new Spring().setAmount(2),
 			new IronNail().setAmount(4),
@@ -916,6 +1006,11 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(100,10,_cut),
 			new CactusArmor(),
 		},{
+			new Stone().setAmount(11),
+			new EnergyStone(),
+			new CraftInfo(100,10,_cut),
+			new StoneArmor(),
+		},{
 			new GlassBlock(),
 			new CraftInfo(100,10,_heat),
 			new GlassArmor(),
@@ -938,6 +1033,10 @@ public class Craft implements java.io.Serializable{
 			new Diamond().setAmount(11),
 			new CraftInfo(100,10,_diamond),
 			new DiamondArmor(),
+		},{
+			new Bullet_HD().setAmount(11),
+			new CraftInfo(100,10,_diamond),
+			new HDArmor(),
 		},{
 			new IronArmor(),
 			new PlantEssence().setAmount(11),
@@ -1021,6 +1120,11 @@ public class Craft implements java.io.Serializable{
 			new WoodenBlock().setAmount(2),
 			new CraftInfo(100,10,_cut),
 			new BigWoodenShield(),
+		},{
+			new BigWoodenShield(),
+			new CactusBlock().setAmount(2),
+			new CraftInfo(100,10,_cut),
+			new BigCactusShield(),
 		},{
 			new Iron().setAmount(32),
 			new CraftInfo(100,10,_heat),
@@ -1185,6 +1289,12 @@ public class Craft implements java.io.Serializable{
 			new BallLauncher(),
 		},{
 			new EnergyBallLauncher(),
+			new EnergyMotor().setAmount(8),
+			new DarkBall().setAmount(16),
+			new CraftInfo(500,20,_energy),
+			new MeteoriteGenerator(),
+		},{
+			new EnergyBallLauncher(),
 			new Iron().setAmount(4),
 			new CraftInfo(100,20,_energy),
 			new EnergyGun(),
@@ -1222,6 +1332,12 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(200,20,_energy),
 			new AgentRefReadonly(),
 		},{
+			new Bucket(),
+			new Iron().setAmount(2),
+			new EnergyStone().setAmount(2),
+			new CraftInfo(200,20,_energy),
+			new Clicker(),
+		},{
 			new IronStick(),
 			new Iron().setAmount(2),
 			new EnergyStone().setAmount(2),
@@ -1243,6 +1359,11 @@ public class Craft implements java.io.Serializable{
 			new DiamondDrill(),
 			new CraftInfo(100,5,_energy),
 			new DiamondEnergyDrill(),
+		},{
+			new EnergyMotor().setAmount(8),
+			new Bullet_HD().setAmount(12),
+			new CraftInfo(1000,10000,_compress),
+			new HDEnergyDrill(),
 		},{
 			new EnergyMotor(),
 			new Spring(),
@@ -1340,6 +1461,13 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(1000,30,_energy),
 			new IronAirship(),
 		},{
+			new IronBlock(),
+			new EnergyStone().setAmount(32),
+			new EnergyMotor().setAmount(8),
+			new RPGLauncher(),
+			new CraftInfo(1000,30,_energy),
+			new IronAirshipSmall(),
+		},{
 			new WoodenBlock().setAmount(4),
 			new EnergyStone().setAmount(8),
 			new EnergyMotor().setAmount(2),
@@ -1401,6 +1529,13 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(1000,30,_energy),
 			new FastBox(),
 		},{
+			new Iron().setAmount(24),
+			new EnergyStone().setAmount(8),
+			new EnergyMotor().setAmount(2),
+			new TeleportationSquare(),
+			new CraftInfo(1000,30,_energy),
+			new ExplosiveBox(),
+		},{
 			new Iron().setAmount(32),
 			new EnergyStone().setAmount(16),
 			new Spring().setAmount(4),
@@ -1426,6 +1561,37 @@ public class Craft implements java.io.Serializable{
 			new RPGLauncher(),
 			new CraftInfo(1000,30,_energy),
 			new FastBall(),
+		},{
+			new EnergyStone().setAmount(8),
+			new EnergyMotor().setAmount(4),
+			new BigIronBall(),
+			new CraftInfo(1000,30,_energy),
+			new IronWheel(),
+		},{
+			new Bullet_HD().setAmount(20),
+			new EnergyStone().setAmount(8),
+			new EnergyMotor().setAmount(16),
+			new IronWheel(),
+			new CraftInfo(1000,8000,_compress),
+			new HDBox(),
+		},{
+			new FastBox(),
+			new EnergyMotor().setAmount(8),
+			new CraftInfo(1000,8000,_energy),
+			new Ball8(),
+		},{
+			new Iron().setAmount(32),
+			new EnergyStone().setAmount(24),
+			new DarkBall().setAmount(16),
+			new EnergyMotor().setAmount(12),
+			new CraftInfo(1000,8000,_energy),
+			new FluidBox(),
+		},{
+			new Iron().setAmount(32),
+			new EnergyStone().setAmount(16),
+			new EnergyMotor().setAmount(4),
+			new CraftInfo(1000,30,_energy),
+			new PipelineTower(),
 		},{
 			new RPGLauncher().setAmount(5),
 			new CraftInfo(1000,30,_energy),
@@ -1575,6 +1741,11 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(100,20,_cut),
 			new IronDoorBlock(),
 		},{
+			new IronStick().setAmount(4),
+			new EnergyStone().setAmount(4),
+			new CraftInfo(100,20,_cut),
+			new Door(),
+		},{
 			new Iron().setAmount(3),
 			new CraftInfo(50,10,_cut),
 			new ConveyorBeltBlock(),
@@ -1640,6 +1811,11 @@ public class Craft implements java.io.Serializable{
 			new EnergyStone().setAmount(4),
 			new CraftInfo(300,20,_energy),
 			new AgentEnergyCollectorBlock(),
+		},{
+			new IronBlock(),
+			new EnergyMotor().setAmount(8),
+			new CraftInfo(300,20,_energy),
+			new FloatingBlock(),
 		},{
 			new WoodenBlock(),
 			new Stick().setAmount(3),
@@ -1715,6 +1891,10 @@ public class Craft implements java.io.Serializable{
 			new Iron(),
 			new CraftInfo(100,20,_block),
 			new ImprovedQuartzBlock().setAmount(4),
+		},{
+			new IronBall_HD(),
+			new CraftInfo(100,20,_block),
+			new HDBlock(),
 		},{
 			new FireBall().setAmount(16),
 			new CraftInfo(200,20,_block),
@@ -1844,9 +2024,32 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(100,10,_cut),
 			new StoneBall(),
 		},{
+			new CactusBlock(),
+			new CraftInfo(100,10,_cut),
+			new CactusBall(),
+		},{
 			new IronBlock(),
 			new CraftInfo(100,10,_heat),
 			new IronBall(),
+		},{
+			new CoalBlock(),
+			new CraftInfo(100,10,_heat),
+			new BurningCoalBall(),
+		},{
+			new Iron().setAmount(4),
+			new CraftInfo(100,10,_heat),
+			new Boomerang(),
+		},{
+			new Paper().setAmount(2),
+			new IronNail().setAmount(2),
+			new CraftInfo(100,10,_cut),
+			new Glider(),
+		},{
+			new Paper().setAmount(2),
+			new StringItem(),
+			new EnergyStone(),
+			new CraftInfo(100,10,_cut),
+			new Balloon(),
 		},{
 			new Iron().setAmount(8),
 			new FireBall().setAmount(3),
@@ -1914,12 +2117,38 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(100,10,_energy),
 			new BoundaryBall(),
 		},{
+			new Spring().setAmount(4),
+			new EnergyStone(),
+			new CraftInfo(100,10,_energy),
+			new SpringBall(),
+		},{
+			new Iron().setAmount(4),
+			new Spring().setAmount(4),
+			new EnergyStone(),
+			new CraftInfo(100,10,_energy),
+			new SmallSpringBall(0).setAmount(4),
+		},{
+			new SmallSpringBall(0),
+			new EnergyStone(),
+			new CraftInfo(25,5,0),
+			new SmallSpringBall(1),
+		},{
+			new SmallSpringBall(0),
+			new FireBall(),
+			new CraftInfo(25,5,0),
+			new SmallSpringBall(2),
+		},{
+			new SmallSpringBall(0),
+			new DarkBall(),
+			new CraftInfo(25,5,0),
+			new SmallSpringBall(3),
+		},{
 			new Bullet_HD().setAmount(10),
 			new CraftInfo(200,1000,_compress),
 			new IronBall_HD(),
 		},{
 			new Cube().setAmount(64),
-			new CraftInfo(1000,5000,_compress),
+			new CraftInfo(1000,10000,_compress),
 			new BlackHole(),
 		},{
 			new Iron(),
@@ -1927,6 +2156,12 @@ public class Craft implements java.io.Serializable{
 			new FireBall(),
 			new CraftInfo(50,10,_energy),
 			new game.item.HandGrenade().setAmount(4),
+		},{
+			new Iron().setAmount(2),
+			new EnergyStone(),
+			new FireBall(),
+			new CraftInfo(50,10,_energy),
+			new game.item.HandGrenadeSlow().setAmount(4),
 		},{
 			new Stick(),
 			new IronNail(),
@@ -1953,6 +2188,10 @@ public class Craft implements java.io.Serializable{
 			new IronNail(),
 			new CraftInfo(25,5,_heat),
 			new Bullet(),
+		},{
+			new GoldParticle().setAmount(2),
+			new CraftInfo(25,5,_cut),
+			new GoldBullet(),
 		},{
 			new Diamond(),
 			new Bullet().setAmount(4),
@@ -1983,6 +2222,11 @@ public class Craft implements java.io.Serializable{
 			new PlantEssence(),
 			new CraftInfo(25,5,_energy),
 			new SpecialBullet(5).setAmount(3),
+		},{
+			new Bullet().setAmount(5),
+			new FireBall().setAmount(3),
+			new CraftInfo(50,10,_energy),
+			new HEAT_Bullet().setAmount(5),
 		},{
 			new Iron().setAmount(32),
 			new EnergyStone(),
@@ -2111,11 +2355,35 @@ public class Craft implements java.io.Serializable{
 			new CraftInfo(200,10,_energy),
 			new RPG_Small_HE().setAmount(2),
 		},{
+			new RPG_Guided(),
+			new EnergyMotor(),
+			new Iron().setAmount(2),
+			new CraftInfo(200,10,_energy),
+			new RPG_Item(),
+		},{
 			new RPG_Empty(),
 			new Iron().setAmount(4),
 			new EnergyStone().setAmount(12),
 			new CraftInfo(200,10,_energy),
 			new RPG_Bullet(),
+		},{
+			new RPG_Empty(),
+			new Iron().setAmount(4),
+			new EnergyStone().setAmount(8),
+			new CraftInfo(200,10,_energy),
+			new RPG_Directed(),
+		},{
+			new RPG_Empty(),
+			new Iron().setAmount(2),
+			new EnergyStone().setAmount(4),
+			new CarbonPowder().setAmount(4),
+			new CraftInfo(200,10,_energy),
+			new RPG_Serial(),
+		},{
+			new RPG_Empty(),
+			new DarkBall(),
+			new CraftInfo(200,10,_energy),
+			new DarkRPG(),
 		},{
 			new Bucket(),
 			new Iron().setAmount(4),
@@ -2296,6 +2564,11 @@ public class Craft implements java.io.Serializable{
 			new Iron().setAmount(8),
 			new CraftInfo(200,20,_energy),
 			new AgentMaker(FloatingDetector_5.class),
+		},{
+			new AgentMaker(FloatingDetector.class),
+			new DarkBall().setAmount(8),
+			new CraftInfo(100,10,_energy),
+			new AgentMaker(DarkFloatingDetector.class),
 		},{
 			new Iron().setAmount(16),
 			new EnergyMotor().setAmount(2),

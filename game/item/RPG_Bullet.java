@@ -17,4 +17,12 @@ public class RPG_Bullet extends RPGItem implements DefaultItemContainer{
 	protected Entity toEnt(){
 		return new game.entity.RPG_Bullet(this);
 	}
+	@Override
+	public boolean autoUse(Human h,Agent a){
+		if(bullet.isEmpty())
+		for(SingleItem si:h.items.toArray()){
+			bullet.insert(si);
+		}
+		return false;
+	}
 };

@@ -56,7 +56,7 @@ public class CEBox extends Vehicle{
 		if(!b.fallable()){
 			if(b.isSolid())des(x,y,w);
 		}else if(!b.isCoverable()){
-			World.cur.setAir(x,y);
+			World.cur.setVoid(x,y);
 			fb=new FallingBlock(x,y,b);
 			fb_dir=-dir;
 			fb.add();

@@ -11,6 +11,12 @@ private static final long serialVersionUID=1844677L;
 		hp=16*30;
 	}
 	public double mass(){return 1;}
+	public boolean shouldKeepAwayFrom(){return true;}
+	
+	protected void drop(){
+		new game.item.BloodEssence().drop(x,y,max(0,min(16,f2i(hp/30))));
+		kill();
+	}
 	
 	@Override
 	void touchEnt(Entity ent){

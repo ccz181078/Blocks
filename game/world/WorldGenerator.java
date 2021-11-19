@@ -2,7 +2,6 @@ package game.world;
 
 import static java.lang.Math.*;
 import static util.MathUtil.*;
-import static game.world.World.World_Height;
 import game.block.*;
 import java.util.*;
 import java.io.*;
@@ -35,12 +34,12 @@ class WorldGenerator implements Serializable{
 	
 	//在世界的左侧或右侧生成一列方块
 	Block[] nxt(){
-		Block[] b=new Block[World_Height];
+		Block[] b=new Block[World.cur.World_Height];
 		int y=0;
 		for(;y<bedrock_y;++y)b[y]=_BedRockBlock;
 		for(;y<lava_y;++y)b[y]=_LavaBlock;
 		for(;y<stone_y;++y)b[y]=_StoneBlock;
-		for(y=stone_y;y<World_Height;++y)b[y]=_AirBlock;
+		for(y=stone_y;y<World.cur.World_Height;++y)b[y]=_AirBlock;
 		ground.gen(b,this);
 		--nxt_plant;
 		if(nxt_plant<0){

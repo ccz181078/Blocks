@@ -17,14 +17,14 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	//所有物品的基类
 	//物品一般只能存在于某个SingleItem中
 	
-	public double getPrice(StatResult result){
+	public double getPrice(StatResult result,boolean is_max){
 		double s=result.getPrice0(this);
-		if(this instanceof Tool){
+		if(this instanceof Tool && !is_max){
 			Tool t=(Tool)this;
 			s*=max(0,min(1,1-t.damage*1./t.maxDamage()));
 		}
 		if(this instanceof DefaultItemContainer){
-			for(SingleItem si:((DefaultItemContainer)this).getItems().toArray())s+=si.getPrice(result);
+			for(SingleItem si:((DefaultItemContainer)this).getItems().toArray())s+=si.getPrice(result,is_max);
 		}
 		return s;
 	}
@@ -42,6 +42,7 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	public boolean onLongPress(Agent a,double tx,double ty){return false;}//被用于长按，返回true表示屏蔽默认事件
 	public void onAttack(Entity a,Source src){}//被用于攻击生物
 	public double hardness(){return game.entity.NormalAttacker.AGENT;}
+	public boolean disableRecover(){return false;}
 	
 	public void onExplode(Entity pos,double tx,double ty,int amount,Source src){
 		for(int i=0;i<amount;++i)onExplode(pos,tx,ty,src);
@@ -91,6 +92,36 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 		if(!(a instanceof Player))return;
 		Player h=(Player)a;
 		//Entity.predict(h);
+		if(World.cur.setting.show_gravitational_field){
+			double C=World.cur.setting.gravitational_field_scale;
+			double d=0.1*World.cur.setting.BW;
+			for(int x=-8;x<=8;++x){
+				for(int y=-4;y<=4;++y){
+					double x0=a.x+x*d,y0=a.y+y*d;
+					Entity e=new game.entity.StoneBall();
+					e.initPos(x0,y0,0,0,null);
+					e.last_g=0.03;
+					World.cur.gtree.query(e);
+					Line.gen(e.x,e.y,e.x+e.xa*C,e.y+e.ya*C,0xffffff00);
+				}
+			}
+		}
+		if(World.cur.setting.show_momentum_field){
+			double C=World.cur.setting.momentum_field_scale;
+			double d=0.1*World.cur.setting.BW;
+			for(int x=-8;x<=8;++x){
+				for(int y=-4;y<=4;++y){
+					double x0=a.x+x*d,y0=a.y+y*d;
+					double xmv=0,ymv=0;
+					for(Entity e:World.cur.getNearbyEnts(x0,y0,d/2,d/2)){
+						double m=e.mass()*(min(e.right,x0+d/2)-max(e.left,x0-d/2))*(min(e.top,y0+d/2)-max(e.bottom,y0-d/2))/e.V;
+						xmv+=m*e.xv;
+						ymv+=m*e.yv;
+					}
+					Line.gen(x0,y0,x0+xmv*C,y0+ymv*C,0xff0000ff);
+				}
+			}
+		}
 		if(World.cur.setting.shoot_trajectory_prediction){
 			Armor ar=h.armor.get();
 			if(ar instanceof Tank){
@@ -102,8 +133,10 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 				Entity.predict(((Shilka)ar).test_shoot(h,((Shilka)ar).a,this.clone()));
 			}else if(ar instanceof FastBall){
 				Entity.predict(((FastBall)ar).test_shoot(h,((FastBall)ar).a,this.clone()));
+			}else if(ar instanceof LauncherWheel){
+				Entity.predict(((LauncherWheel)ar).test_shoot(h,h.a,this.clone()));
 			}else{
-				Item w=h.getCarriedItem().get();
+				Item w=this;
 				if(w instanceof ShootableTool){
 					Entity.predict(((ShootableTool)w).test_shoot(h,h.x+h.action.tx,h.y+h.action.ty));
 				}
@@ -119,17 +152,26 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	
 	public boolean useInArmor(){return false;}
 	
+	public double launchValue(){return 0.01;}
+
+	private boolean showInnerItems(){return this instanceof DefaultItemContainer && !(this instanceof Armor || this instanceof Shoes);}
+	
 	public void onUse(Human a){//按下使用按钮
 		if(foodVal()>0&&a.hp<a.maxHp()-0.1){
+			Human.RecoverItem ri=a.new RecoverItem(this);
 			if(!a.eat(this)){
 				a.items.getSelected().insert(this);
-			}
+			}else ri.end();
 		}else{
 			a.items.getSelected().insert(this);
+		}
+	}
+	public void showDetail(Human a){
+		if((a instanceof Player)){
 			if(this instanceof DefaultItemContainer){
-				if((a instanceof Player)){
-					((Player)a).openDialog(new game.ui.UI_Item(this,((DefaultItemContainer)this).getItems()));
-				}
+				((Player)a).openDialog(new game.ui.UI_Item(this,((DefaultItemContainer)this).getItems()));
+			}else{
+				((Player)a).openDialog(new game.ui.UI_Item(this,ItemList.create()));
 			}
 		}
 	}
@@ -139,7 +181,7 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 		}
 	}
 	public BmpRes getUseBmp(){//获取使用按钮的贴图
-		return foodVal()>0?eat_btn:this instanceof DefaultItemContainer?use_btn:empty_btn;
+		return foodVal()>0?eat_btn:empty_btn;
 	}
 	public boolean isBroken(){return false;}
 	public void onBroken(double x,double y){//损坏
@@ -154,11 +196,10 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	public boolean autoUse(final Human h,final Agent a){
 		if(this instanceof Shield)return false;
 		if(foodVal()>0){
-			if(h.hp+foodVal()/2<h.maxHp()){
+			if(h.last_eat_time<World.cur.time&&h.hp+foodVal()/2<h.maxHp()){
 				h.items.getSelected().popItem().onUse(h);
 				return true;
 			}
-			return false;
 		}
 		if(this instanceof LaunchableItem
 		||this instanceof Warhead
@@ -300,6 +341,15 @@ public abstract class Item implements java.io.Serializable,Cloneable,NormalAttac
 	
 	public boolean cmpType(Item it){//比较是否可以合为一项
 		return this.getClass()==it.getClass();
+	}
+	
+	protected boolean isEmpty(){
+		if(this instanceof DefaultItemContainer){
+			for(SingleItem si:((DefaultItemContainer)this).getItems().toArray()){
+				if(!si.isEmpty())return false;
+			}
+		}
+		return true;
 	}
 	
 	//被生物a用于点击世界中的x,y位置

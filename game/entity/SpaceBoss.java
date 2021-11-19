@@ -20,7 +20,7 @@ public class SpaceBoss extends NormalAgent{
 	float rx,ry,rxv,ryv;
 	public double width(){return 1;}
 	public double height(){return 1;}
-	public double maxHp(){return 1e7;}
+	public double maxHp(){return 1e6;}
 	public double mass(){return 16;}
 	public boolean chkBlock(){return false;}
 	public boolean chkRigidBody(){return false;}
@@ -63,7 +63,7 @@ public class SpaceBoss extends NormalAgent{
 			xa+=xd*d;
 			ya+=yd*d;
 			if(rnd()<0.02){
-				throwEntFromCenter(new DarkCube(),tg.x,tg.y,0.3*0.3*0.01);
+				throwEntFromCenter(getBall(),tg.x,tg.y,0.3*0.3*0.01);
 			}
 			if(md<10){
 				xv*=0.98;
@@ -75,11 +75,7 @@ public class SpaceBoss extends NormalAgent{
 				else y1+=rnd()<0.5?-1:1;
 				Block b=World.cur.get(x,y);
 				if(!b.isCoverable()&&!(b.rootBlock() instanceof BedRockBlock||b.isDeep())&&World.cur.get(x1,y1).isCoverable()){
-					World.cur.setAir(x,y);
-					Entity e=new FallingBlock(x,y,b);
-					e.xv=(x1-x)*0.3+rnd(-0.1,0.1);
-					e.yv=(y1-y)*0.3+rnd(-0.1,0.1);
-					e.add();
+					b.fall(x,y,(x1-x)*0.3+rnd(-0.1,0.1),(y1-y)*0.3+rnd(-0.1,0.1));
 				}
 			}
 		}
@@ -101,11 +97,11 @@ public class SpaceBoss extends NormalAgent{
 		return dark_filter;
 	}
 	
-	
+	public double onImpact(double v){return 0;}
 
 	public boolean chkRemove(long t){return false;}
 	public void draw(Canvas cv){
-		
+		int col=getColor();
 		int n=model.length/3;
 		float[] xys=new float[n*2];
 		float x=0,y=0,z=0,zn;
@@ -119,10 +115,11 @@ public class SpaceBoss extends NormalAgent{
 			xys[i*2]=cy*x+sy*z;
 			xys[i*2+1]=-sx*y+cx*zn;
 		}
-		cv.drawLines(xys,0xff800080);
+		cv.drawLines(xys,col);
 		
 		super.draw(cv);
 	}
+	protected int getColor(){return 0xff800080;}
 	void onKill(){
 		for(int t=6;t>0;--t)new game.item.Cube().drop(x,y);
 	}

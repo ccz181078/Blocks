@@ -65,7 +65,7 @@ public class FlakBullet extends Bullet{
 			if(xv*ent.xv+yv*ent.yv>0)return;
 		}
 		double v=sqrt(xv*xv+yv*yv);
-		if(ent instanceof FlakBullet) hp -= 5;
+		if(ent instanceof FlakBullet) hp -= 2;
 		else{
 			ent.onAttacked(v*bullet.attackValue(),this);
 			hp -= 70 * rnd();

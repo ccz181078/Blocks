@@ -11,8 +11,8 @@ public class EnergyCell extends Item implements EnergyContainer{
 	private static final long serialVersionUID=1844677L;
 	
 	@Override
-	public double getPrice(StatResult result){
-		return super.getPrice(result)+result.getEnergyPrice()*(maxEnergy()-resCap());
+	public double getPrice(StatResult result,boolean is_max){
+		return super.getPrice(result,is_max)+result.getEnergyPrice()*(maxEnergy()-resCap());
 	}
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 

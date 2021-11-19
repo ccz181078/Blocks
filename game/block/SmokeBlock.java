@@ -16,7 +16,6 @@ public class SmokeBlock extends Block{
 	public boolean isCoverable(){return false;}
 	public double hardness(){return game.entity.NormalAttacker.POWDER;}
 	
-	public double mass(){return 0.1;}
 	public double impactValue(){return 0;}
 	
 	double frictionIn1(){return 0.05;}

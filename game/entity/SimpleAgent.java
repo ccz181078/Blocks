@@ -20,6 +20,12 @@ public abstract class SimpleAgent extends Agent{
 	SimpleAgent(double _x,double _y){super(_x,_y);}
 	
 	@Override
+	public void update(){
+		super.update();
+		loseHp(0.001,SourceTool.NORMAL);
+	}
+	
+	@Override
 	public void ai(){
 		if(target!=null&&target.isRemoved())target=null;
 		if(ydep<0&&ydir<0)ydir=0;
@@ -45,8 +51,6 @@ public abstract class SimpleAgent extends Agent{
 		){
 			xdir*=-1;
 		}
-		
-		addHp(0.001);
 	}
 	public void onAttacked(Attack a){
 		super.onAttacked(a);

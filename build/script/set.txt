@@ -1,0 +1,16 @@
+s:=World.cur.setting
+s.BW=24
+s.show_gravitational_field=false
+s.gravitational_field_scale=1000
+
+s.show_momentum_field=false
+s.momentum_field_scale=10
+
+s.shoot_trajectory_prediction=true
+
+s.show_mass_field=true
+s.show_ents=true
+s.show_agents=true
+
+gs:=World.cur.getRootPlayer().game_setting
+gs.show_hp_change=true

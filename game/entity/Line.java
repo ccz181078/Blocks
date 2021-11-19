@@ -24,7 +24,7 @@ public class Line extends NonInteractiveEnt{
 		x0=-(float)xd;
 		y0=-(float)yd;
 		color=col;
-		hp=5;
+		hp=1;
 	}
 	//@Override public void add(){}
 	public static void gen(double x,double y,double d){
@@ -33,6 +33,9 @@ public class Line extends NonInteractiveEnt{
 	}
 	public static void gen(double x1,double y1,double x2,double y2){
 		new Line(x1,y1,x2-x1,y2-y1,0xffff0000).add();
+	}
+	public static void gen(double x1,double y1,double x2,double y2,int col){
+		new Line(x1,y1,x2-x1,y2-y1,col).add();
 	}
 	public static void gen(Entity ent,int col){
 		Line w=new Line(ent,col);

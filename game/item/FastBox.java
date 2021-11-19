@@ -74,7 +74,7 @@ public class FastBox extends Vehicle{
 	public Attack transform(Attack a){
 		a=super.transform(a);
 		if(a!=null){
-			damage+=1.2*rf2i(a.val);
+			damage+=rf2i(1.2*a.val);
 			a.val*=0.02;
 		}
 		return a;

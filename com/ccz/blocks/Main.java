@@ -22,6 +22,9 @@ public class Main{
 			new MainActivity();
 		}
 	}
+	public static void runOnUpdateThread(Runnable r){
+		ut.run(r);
+	}
 	public static void main(String args[])throws Exception{
 		if(args.length==4){
 			MainActivity.main(args);
@@ -40,6 +43,7 @@ public class Main{
 			}catch(NoSuchElementException nsee){
 				break;
 			}
+			try{
 			if(s.equals("no_more_input")){
 				for(;;)Thread.sleep(1000);
 			}else if(s.equals("start"))ut.run(new Runnable(){public void run(){ut.startGame();}});
@@ -132,6 +136,14 @@ public class Main{
 				ut.run(new Runnable(){public void run(){
 					ut.runInWorld(debug.script.Script.run(ss));
 				}});
+			}else if(s.equals("si")){
+				final String user=sc.next();
+				final String name=sc.next();
+				ut.runInWorld(new Runnable(){public void run(){ut.saveItems(user,name);}});
+			}else if(s.equals("li")){
+				final String user=sc.next();
+				final String name=sc.next();
+				ut.runInWorld(new Runnable(){public void run(){ut.loadItems(user,name);}});
 			}else if(s.equals("cm")||s.equals("changemode")){
 				final String name=sc.next();
 				ut.runInWorld(new Runnable(){public void run(){ut.changeGameMode(name);}});
@@ -170,6 +182,10 @@ public class Main{
 					ut.runInWorld(debug.script.Script.run(ss));
 				}});
 				//System.out.println("无效指令: "+s);
+			}
+			}catch(Exception e){
+				System.err.println("出现异常\n");
+				debug.Log.i(e);
 			}
 		}
 		ut.run(new Runnable(){public void run(){ut.exitGame();}});
@@ -292,6 +308,7 @@ class UpdateThread extends Thread{
 			else if(mode.equals("p"))config.mode=World.Mode.PVP;
 			else if(mode.equals("e"))config.mode=World.Mode.ECPVP;
 			else if(mode.equals("level"))config.mode=World.Mode.LEVEL;
+			else if(mode.equals("rts"))config.mode=World.Mode.RTS;
 			else throw new Exception();
 
 			     if(terrain.equals("n"))config.terrain=World.Terrain.NORMAL;
@@ -389,7 +406,8 @@ class UpdateThread extends Thread{
 				GameView.ni.offer(ni);
 				MainActivity._this.runOnUiThread(new Runnable(){public void run(){
 					try{
-						MainActivity._this.game_view.invalidate();
+						GameView gv=MainActivity._this.game_view;
+						gv.invalidate();
 					}catch(Exception e){debug.Log.i(e);}
 				}});
 			}
@@ -453,6 +471,45 @@ class UpdateThread extends Thread{
 		}
 		World.cur.save_path=debug.Log.MAIN_DIR+name+debug.Log.FILE_PATH_SEPARATOR;
 		saveGame();
+	}
+	public void saveItems(String user,String name){
+		if(World.cur==null){
+			log("游戏未运行");
+			return;
+		}
+		try{
+			game.entity.Player pl=World.cur.getPlayerByName(user);
+			game.item.SingleItem[] sis=pl.items.toArray();
+			byte[] bytes=util.SerializeUtil.obj2bytes(sis);
+			OutputStream os=new FileOutputStream(debug.Log.MAIN_DIR+name+".items");
+			os.write(bytes);
+			os.close();
+			for(game.item.SingleItem si:sis){
+				System.out.println("si: "+si.get()+" "+si.getAmount());
+			}
+		}catch(Exception e){
+			log("保存失败");
+			log(e);
+		}
+	}
+	public void loadItems(String user,String name){
+		if(World.cur==null){
+			log("游戏未运行");
+			return;
+		}
+		try{
+			game.entity.Player pl=World.cur.getPlayerByName(user);
+			byte[] bytes=util.SerializeUtil.readBytesFromFile(debug.Log.MAIN_DIR+name+".items");
+			game.item.SingleItem[] sis=(game.item.SingleItem[])util.SerializeUtil.bytes2obj(bytes);
+			pl.dropItems();
+			for(game.item.SingleItem si:sis){
+				System.out.println("li: "+si.get()+" "+si.getAmount());
+				pl.items.insert(si);
+			}
+		}catch(Exception e){
+			log("读取失败");
+			log(e);
+		}
 	}
 	public void stopGame(){
 		if(!started){

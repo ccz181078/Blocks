@@ -235,6 +235,7 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 			lr=max(lr,0.14);
 		}
 		lr*=hp_rate;
+		double xlr=lr;
 		if(xdir<0){
 			if(lr>0){
 				xa-=0.03*lr/mass();
@@ -267,7 +268,7 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 		
 		double xp_a=0.005;
 		if(World.cur.weather==Weather._energystone)xp_a=0.03;
-		xp=min(maxXp(),xp+xp_a);
+		xp=min(maxXp(),xp+xp_a*World.cur.setting.xp_recovery_speed);
 	}
 	@Override
 	public void update0(){
@@ -310,16 +311,26 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	public final void after_draw(Canvas cv){
 		//if(is_attacked>0)cv.red();
 	}
+	public boolean drawRev(){
+		return false;
+	}
 	public void draw(Canvas cv){//绘制
 		float w=(float)width(),h=(float)height();
 		game.ui.UI.drawProgressBar(cv,0xffff0000,0xff7f0000,(float)(hp/maxHp()),-w,h+0.1f,w,h+0.2f);
 		
 		cv.save();{
-			cv.scale(1,-1);
-			cv.drawText((int)round(hp)+"/"+(int)round(maxHp()),0,-(float)height()-0.15f,0.2f,0);
+			float k=World.cur.setting.BW/12f;
+			cv.translate(0,(float)height()+0.15f);
+			cv.scale(k,-k);
+			cv.drawText((int)ceil(hp)+"/"+(int)ceil(maxHp()),0,0,0.2f,0);
 		}cv.restore();
 		
-		super.draw(cv);
+		if(drawRev()){
+			cv.save();
+			cv.scale(-1,1);
+			super.draw(cv);
+			cv.restore();
+		}else super.draw(cv);
 	}
 	
 	public void initUI(game.ui.UI_MultiPage ui){}
@@ -350,6 +361,9 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 			}
 		}
 	}
+	public BmpRes getCtrlBmp(){
+		return getBmp();
+	}
 	@Override
 	void onKill(){
 		showHpChange();
@@ -364,6 +378,20 @@ public abstract class Agent extends Entity implements game.item.EnergyContainer{
 	@Override
 	public void onKilled(Source src){
 		super.onKilled(src);
+		if(src instanceof TextGuidedBullet){
+			TextGuidedBullet w=((TextGuidedBullet)src);
+			int cnt=max(1,min(10,(int)(maxHp()/100)));
+			for(int i=0;i<cnt;++i){
+				new TextGuidedBullet((game.item.TextGuidedBullet)w.bullet)
+				.initPos(
+					x+rnd_gaussion()*width(),
+					y+rnd_gaussion()*height(),
+					rnd_gaussion()*0.3,
+					rnd_gaussion()*0.3,
+					w.source)
+				.add();
+			}
+		}
 		Agent a=src.getSrc();
 		if(a!=null)a.onKillAgent(this);
 	}

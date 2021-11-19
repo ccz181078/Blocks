@@ -14,6 +14,7 @@ private static final long serialVersionUID=1844677L;
 	public boolean chkEnt(){return false;}
 	public boolean chkBlock(){return false;}
 	public boolean chkRigidBody(){return false;}
+	public boolean shouldKeepAwayFrom(){return true;}
 	
 	public void touchAgent(Agent a){
 		if(a.group()==Agent.Group.DARK||hp<=0||a.hp<=0)return;

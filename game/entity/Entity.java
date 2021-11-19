@@ -45,7 +45,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	public BmpRes getBmp(){return null;}
 	public boolean pickable(){return false;}
 	public void pickedBy(Agent a){}
-	public double fluidResistance(){return 1;}
+	public double fluidResistance(){return 1/max(1,mass());}
 	public static boolean is_test=false,is_calc_impulse=false;
 	static Entity last_launched_ent=null;
 	static double xmv,ymv;
@@ -87,23 +87,25 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	
 	public boolean isRemoved(){return removed;}
 	public boolean harmless(){return false;}
+	public boolean shouldKeepAwayFrom(){return false;}
 	
 	private final void apply_v(){
 		xv+=xa;yv+=ya;av+=aa;
 		xa=ya=aa=0;
 		
 		double dxv=xv-xv0,dyv=yv-yv0;
-		//if(this instanceof Player)System.err.println("dxv="+dxv+"  dyv="+dyv+"  v="+xv+","+yv+"  time="+World.cur.time);
+		//if(this instanceof Player)System.err.println("dxv="+dxv+"  dyv="+dyv+"  xv="+xv+"  yv="+yv+"  time="+World.cur.time);
 		double delta_Ek=max(0,mass()*(dxv*dxv+dyv*dyv)-0.3);
 		if(delta_Ek>0){
 			delta_Ek=onImpact(delta_Ek*30);
+			//if(this instanceof Player)System.err.printf("d Ek=%g\n",delta_Ek);
 			loseHp(delta_Ek,SourceTool.IMPACT);
 		}
 		xv0=xv;yv0=yv;
 	}
 	
 	public void move(){
-		apply_v();
+		//apply_v();
 		upd_v();
 		updBlock();
 		if(x!=x||y!=y||a!=a||xv!=xv||yv!=yv||av!=av||!(abs(x)<100000)||!(abs(y)<100000)){
@@ -141,7 +143,11 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	}
 	public Entity getBall(){return new FireBall();}
 	public void explode(double v){explode(v,this,false);}
+	public void explode(double v,int k){explode(v,this,false,k);}
 	public void explode(double v,BallProvider ball,boolean directed){
+		explode(v,ball,directed,5);
+	}
+	public void explode(double v,BallProvider ball,boolean directed,int k){
 		//v*1.55
 		Source ex=SourceTool.explode(this);
 		int c=min(300,rf2i(v*2));
@@ -151,14 +157,14 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			double xv=rnd(-1,1),yv=rnd(-1,1),v2=xv*xv+yv*yv;
 			if(directed&&xv*this.xv+yv*this.yv<v*hypot(this.xv,this.yv)*rnd(0,1)-1e-4)continue;
 			if(v2>0.1&&v2<1){
-				ball.getBall().initPos(x+xv/3,y+yv/3,this.xv/5+xv*v0,this.yv/5+yv*v0,ex).add();
+				ball.getBall().initPos(x+xv/3,y+yv/3,this.xv/k+xv*v0,this.yv/k+yv*v0,ex).add();
 				if(is_test)return;
 			}
 		}
 	}
 	double getExplodeVel(){return 0.4;}
 	
-	public void explodeDirected(BallProvider ball,int cnt,double angle_range,double max_v,double hp_scale){
+	public void explodeDirected(BallProvider ball,int cnt,double angle_range,double max_v,double min_v,double hp_scale){
 		Source ex=SourceTool.explode(this);
 		for(int i=1;i<=cnt;++i){
 			if(is_test)i=cnt;
@@ -170,7 +176,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			Xv *= t * ( 1 + rnd_gaussion()*0.05 );
 			Yv *= t * ( 1 + rnd_gaussion()*0.05 );
 			v=sqrt(Xv*Xv+Yv*Yv);
-			if(v>0.05){
+			if(v>min_v){
 				double c=cos(angle),s=sin(angle);
 				ball.getBall().initPos(x,y,Xv*c-Yv*s,Xv*s+Yv*c,ex).add();
 			}
@@ -266,7 +272,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			if(isRemoved())return;
 		}
 		if(useRandomWalk()){
-			impulse(rnd_gaussion(),rnd_gaussion(),5e-4*sqrt(hypot(xv,yv))*(width()+height()));
+			impulse(rnd_gaussion(),rnd_gaussion(),(World.cur.setting.random_walk_coefficient)*sqrt(hypot(xv,yv))*(width()+height()));
 		}
 		upd_a();
 		
@@ -330,26 +336,37 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			for(int y=0;y<ni.blocks.length;++y){
 				Block[] b=ni.blocks[y];
 				for(int x=0;x<b.length;++x){
-					if(b[x].rootBlock().transparency()<1)shadowed=false;
+					if(b[x].rootBlock().transparency()<0.6)shadowed=false;
 					chkBlock(ni.xl+x,ni.yl+y,b[x]);
 				}
 			}
 		}
-		if(!in_wall&&!climbable)ya-=last_g=gA()*max(0,1-anti_g);
-		else last_g=0;
-		apply_v();
-		if(xfl>0){
-			double y0=(yv>0?top:bottom);
+		if(!in_wall&&!climbable){
+			last_g=gA()*World.cur.setting.gravitational_constant*max(0,1-anti_g);
+			if(World.cur.gtree!=null){
+				World.cur.gtree.query(this);
+			}else{
+				ya-=last_g;
+			}
+		}else last_g=0;
+		//apply_v();
+		//if(this instanceof Player)System.out.printf("aa: %g, v: (%g,%g; %g)\n",aa,xv,yv,av);
+		if(xfl>0&&ydep!=0){
+			double y0=(ydep>0?top:bottom);
 			double rxv=-xvAt(x,y0);
-			double xF=min(1,xfs*frictionX()/(xfl+1e-8));
+			double xF=min(0.5,xfs*frictionX()/(xfl+1e-8));
 			impulse(x,y0,xF*rxv,0,mass());
+			//if(this instanceof Player)System.out.printf("xF: %g, rxv: %g at (%g,%g)\n",xF,rxv,x-x,y0-y);
 		}
-		if(yfl>0){
-			double x0=(xv>0?right:left);
-			double yF=min(1,yfs*frictionY()/(yfl+1e-8));
+		//if(this instanceof Player)System.out.printf("aa: %g\n",aa);
+		if(yfl>0&&xdep!=0){
+			double x0=(xdep>0?right:left);
+			double yF=min(0.5,yfs*frictionY()/(yfl+1e-8));
 			double ryv=-yvAt(x0,y);
 			impulse(x0,y,0,yF*ryv,mass());
+			//if(this instanceof Player)System.out.printf("yF: %g, ryv: %g at (%g,%g)\n",yF,ryv,x0-x,y-y);
 		}
+		//if(this instanceof Player)System.out.printf("aa: %g\n",aa);
 		apply_v();
 		if(fs2>0)fs2=max(fs2,0.1);
 		fs=max(fs,fs2);
@@ -363,7 +380,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			xv*=F2;yv*=F2;av*=F3;
 		}
 		if(fc!=0){
-			double k=1/(1+fc*hypot(xv,yv));
+			double k=1/(1+fc*hypot(xv,yv)*World.cur.setting.air_drag_coefficient);
 			xv*=k;
 			yv*=k;
 		}
@@ -418,20 +435,23 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			y+=yv;
 		}
 		
-		av%=(PI*2);
+		//av%=(PI*2);
 		a=(a+av)%(PI*2);
 		
-		xv=(xv!=0?xv0:0);yv=(yv!=0?yv0:0);
+		double k=K();
+		
+		xv=(xv!=0?xv0:xv0*-k);yv=(yv!=0?yv0:yv0*-k);
 		
 		apply_v();
 		//fallBlock();
 	}
+	protected double K(){return 0;}
 	private final void upd_v(){
 		double f1=friction();
 		xf*=f1;yf*=f1;f*=f1;
 		xv*=(1-min(1,xf))*(1-min(1,f));
 		yv*=(1-min(1,yf))*(1-min(1,f));
-		if(in_wall)av*=(1-min(1,f));
+		if(in_wall)av*=(1-min(1,f/mass()));
 	}
 	double friction(){return 1;}//摩擦力
 	double frictionX(){return friction();}//摩擦力
@@ -557,7 +577,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			}
 		}
 	}
-	protected float getRotation(){
+	public float getRotation(){
 		if(rotByVelDir())return (float)(a*180/PI);
 		return 0;
 	}
@@ -572,6 +592,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			xmv+=m*xv;
 			ymv+=m*yv;
 		}
+		if(x!=x||y!=y)return;
 		World.cur.newEnt(this);
 	}//add to world
 	protected static final AttackFilter
@@ -607,6 +628,15 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		return xd*xd+yd*yd;
 	}
 	
+	public final double v2rel_rnd(Entity e){
+		double x1=max(left,e.left),x2=min(right,e.right);
+		double y1=max(bottom,e.bottom),y2=min(top,e.top);
+		if(x1>x2||y1>y2)return 0;
+		double x=rnd(x1,x2),y=rnd(y1,y2);
+		double xd=xvAt(x,y)-e.xvAt(x,y),yd=yvAt(x,y)-e.yvAt(x,y);
+		return xd*xd+yd*yd;
+	}
+	
 	public double intersection(Entity ent){
 		return max(0,min(right,ent.right)-max(left,ent.left))*max(0,min(top,ent.top)-max(bottom,ent.bottom));
 	}
@@ -630,7 +660,6 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		return this;
 	}
 	public final void impulse(Entity ent,double k){
-		//if(this instanceof game.entity.StoneBall)System.out.println(ent.getClass()+":");
 		impulse(ent.x,ent.y,ent.xv,ent.yv,k*ent.mass());
 	}
 	public final void impulseMerge(Entity ent){
@@ -712,8 +741,12 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 			friend_group=((Agent)launcher).friend_group;
 		}
 		double src_v=max(1,hypot(src.xv,src.yv));
-		initPos(x+src.xv/src_v,y+src.yv/src_v,xv,yv,SourceTool.make(launcher,"发射的"));
-		if(!is_test)src.impulse(this,-1);
+		initPos(x+src.xv/src_v,y+src.yv/src_v,xv,yv,SourceTool.launch(launcher));
+		if(!is_test){
+			Agent w=launcher.getSrc();
+			if(w==null)w=src;
+			w.impulse(this,-1);
+		}
 		initAddVel(src.xv,src.yv);
 		if(is_test)last_launched_ent=this;
 		else add();
@@ -749,7 +782,11 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 				}
 			}
 			md=min(md,d);
+			if(i==0){
+				if(w.test_chkBlock())break;
+			}
 			if(w instanceof Bullet && hypot(w.xv,w.yv)<0.4)break;
+			if(w instanceof Arrow && hypot(w.xv,w.yv)<0.3)break;
 			if(hypot(w.xv,w.yv)<1e-2&&hypot(target.xv,target.yv)<1e-2)break;
 			w.test_update();
 			w.test_step();
@@ -765,9 +802,14 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 		if(w==null)return;
 		if(w instanceof Agent)w=new SimEntity(w);
 		Line.begin();
-		for(int i=0;i<200;++i){
+		double x0=1e10;
+		int stop_t=0;
+		for(int i=0;i<1000;++i){
 			w.test_update();
 			w.test_step();
+			if(x0==w.x)++stop_t;
+			x0=w.x;
+			if(stop_t>5)break;
 			Line.gen(w,0xff00ff00);
 		}
 		Line.end(true);
@@ -776,7 +818,7 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	public void test_update(){
 		update0();
 		if(useRandomWalk()){
-			impulse(rnd_gaussion(),rnd_gaussion(),5e-4*sqrt(hypot(xv,yv))*(width()+height()));
+			impulse(rnd_gaussion(),rnd_gaussion(),(World.cur.setting.random_walk_coefficient)*sqrt(hypot(xv,yv))*(width()+height()));
 		}
 		upd_a();
 		
@@ -799,7 +841,14 @@ public abstract class Entity implements Serializable,BallProvider,Source,NormalA
 	}
 	public final void test_step(){
 		if(test_chkBlock()){xv=yv=xa=ya=0;}
-		else ya-=gA();
+		else{
+			last_g=gA()*World.cur.setting.gravitational_constant;
+			if(last_g!=0&&World.cur.gtree!=null){
+				World.cur.gtree.query(this);
+			}else{
+				ya-=last_g;
+			}
+		}
 		if(fc!=0){
 			double k=1/(1+fc*hypot(xv,yv));
 			xv*=k;

@@ -16,11 +16,12 @@ public class ScreenSaver{
 			cos=new CompressedOutputStream(fos);
 		}catch(Exception e){e.printStackTrace();}
 	}
-	public void write(byte[]b){
-		if(b==null)return;
+	public int write(byte[]b){
+		if(b==null)return 0;
 		try{
-			cos.write(b);
+			return cos.write(b);
 		}catch(Exception e){e.printStackTrace();}
+		return 0;
 	}
 	public void close(){
 		try{

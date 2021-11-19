@@ -59,16 +59,6 @@ public class LauncherBlock extends IronBlock implements BlockWithUI{
 		if(on_e&&!on&&!launcher.isEmpty()){
 			EnergyLauncher ebl=launcher.get();
 			if(ebl.shootCond()){
-				/*ebl.shoot(slope,new Launcher(){
-					public void launch(Entity e,double slope,double v){
-						e.x=x+0.5+(0.51+e.width())*dir;
-						e.y=y+0.5;
-						e.xv=v*dir;
-						e.yv=v*dir*slope;
-						e.source=SourceTool.block(x,y,LauncherBlock.this,"发射的");
-						e.add();
-					}
-				});*/
 				ebl.clickAt(x+0.5+dir*1.5,y+0.5+dir*slope,Agent.temp(x+0.5,y+0.5,0.5,0.5,dir,SourceTool.block(x,y,this)));
 				if(ebl.isBroken()){
 					ebl.onBroken(x+dir,y+0.5);

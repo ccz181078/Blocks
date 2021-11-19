@@ -35,6 +35,19 @@ private static final long serialVersionUID=1844677L;
 		}
 		return false;
 	}
+	public boolean onUpdate(int x,int y){
+		if(super.onUpdate(x,y))return true;
+		if(rnd()<0.008){
+			int x1=x+rndi(-1,1),y1=y+rndi(-1,1);
+			int x2=x+rndi(-1,1),y2=y+rndi(-1,1);
+			if(World.cur.get(x1,y1).rootBlock() instanceof SandBlock)
+			if(World.cur.get(x2,y2).rootBlock() instanceof SandBlock){
+				World.cur.set(x,y,new SandBlock());
+				return true;
+			}
+		}
+		return false;
+	}
 	public void onLight(int x,int y,double v){
 		if(rnd()<0.05*v&&World.cur.get(x,y+1).isCoverable()){
 			if(rnd()<0.01&&genTree(x,y));

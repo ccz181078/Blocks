@@ -10,6 +10,7 @@ public class EnergyExplodeBall extends Entity{
 	static BmpRes bmp=new BmpRes("Entity/EnergyBall");
 	public BmpRes getBmp(){return bmp;}
 	public double hardness(){return game.entity.NormalAttacker.HD;}
+	public boolean shouldKeepAwayFrom(){return true;}
 	@Override
 	public double light(){
 		return 2;
@@ -20,7 +21,7 @@ public class EnergyExplodeBall extends Entity{
 	public double gA(){return 0;}
 	public boolean chkAgent(){return true;}
 	public boolean chkEnt(){return true;}
-	public double mass(){return 500;}
+	public double mass(){return 16;}
 	@Override
 	public double touchVal(){return 0;}
 	public static void gen(double x,double y,Source src){

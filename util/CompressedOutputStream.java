@@ -46,7 +46,7 @@ public class CompressedOutputStream{
 		mp[w+1]=x;
 		mp[w+2]=y;
 	}
-	public void write(byte b[])throws IOException{
+	public int write(byte b[])throws IOException{
 		b=Arrays.copyOf(b,b.length);
 		long tt=System.currentTimeMillis();
 		final int n0=last.length+1,n=n0+b.length;
@@ -113,6 +113,7 @@ public class CompressedOutputStream{
 		os.write(tmp);
 		//for(byte by:tmp)System.out.print(((by&128)!=0?"*":"")+(by&127)+",");System.out.println();
 		os.flush();
+		return tmp.length;
 	}
 	public void close()throws IOException{
 		writeInt(os,0);

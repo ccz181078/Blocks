@@ -17,7 +17,7 @@ public class RPG_Dark_HE extends RPG{
 	}
 	@Override
 	public void explode(){
-		explodeDirected(this,40,0.1,1,1);
+		explodeDirected(this,40,0.1,1,0,1);
 		super.explode();
 	}
 	@Override

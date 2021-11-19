@@ -1,7 +1,7 @@
 pl:=World.cur.getRootPlayer(),
 pl.creative_mode=false,
 x:=pl.x+util.MathUtil.rnd(-60.0,60.0),
-y:=pl.y+util.MathUtil.rnd(30.0,50.0),
+y:=World.cur.getMaxY()-1.0,
 z:=ZombieRobot(x,y),
 as:=IronAirship(),
 as.ec.insert(InfiniteEnergyCell.full():Item),

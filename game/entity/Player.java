@@ -47,13 +47,32 @@ public class Player extends Human{
 	BmpRes legBmp(){return World.cur.getMode() instanceof ECPvPMode?Zombie.leg:leg;}
 	Group group(){return Group.PLAYER;}
 	
+	@Override
+	public double mass(){
+		if(suspend_mode)return 0.01;
+		return super.mass();
+	}
 	public boolean chkBlock(){return !(creative_mode&&suspend_mode);}
-	public boolean chkRigidBody(){return !(creative_mode&&suspend_mode);}
+	public boolean chkRigidBody(){
+		if(creative_mode&&suspend_mode)return false;
+		return super.chkRigidBody();
+	}
 	public double gA(){return suspend_mode?0:super.gA();}
 	
-	public float getRotation(){
+	public float getViewRotation(){
 		if(armor.get()!=null)return armor.get().getRotation();
 		return 0;
+	}
+	
+	private transient java.util.function.Consumer<String> texttg=null;
+	private transient boolean send_text_flag=false;
+	public void sendText(java.util.function.Consumer<String> e){
+		texttg=e;
+		send_text_flag=true;
+	}
+	
+	public void onText(String s){
+		if(texttg!=null)texttg.accept(s);
 	}
 
 	@Override
@@ -130,9 +149,41 @@ public class Player extends Human{
 			}
 			case 'Z':{
 				if(closeDialog())return;
-				if(creative_mode)openDialog(new UI_CreativeMode());
-				else if(World.cur.getMode() instanceof game.world.PvPMode)openDialog(new UI_PvPMode());
-				else openDialog(new UI_Craft(Craft.getAll(0),-7));
+				if(creative_mode){
+					openDialog(new UI_Group(0,0){
+						{
+							addChild(new UI_CreativeMode());
+							addChild(new UI_Button(-9,0){
+								protected String getText(){
+									return "自动补充:"+(recover_item?"开":"关");
+								}
+								protected BmpRes getBmp(){
+									return Item.empty_btn;
+								}
+								protected void onPress(){
+									recover_item=!recover_item;
+								}
+							});
+						}
+					});
+				}else if(World.cur.getMode() instanceof game.world.PvPMode){
+					openDialog(new UI_Group(0,0){
+						{
+							addChild(new UI_PvPMode());
+							addChild(new UI_Button(-9,0){
+								protected String getText(){
+									return "自动购买:"+(recover_item?"开":"关");
+								}
+								protected BmpRes getBmp(){
+									return Item.empty_btn;
+								}
+								protected void onPress(){
+									recover_item=!recover_item;
+								}
+							});
+						}
+					});
+				}else openDialog(new UI_Craft(Craft.getAll(0),-7));
 				return;
 			}
 			case 'X':{
@@ -174,34 +225,45 @@ public class Player extends Human{
 			}
 		});
 		ui.addChild(new UI_Button(-3,7){
+			protected String getText(){
+				if(dialog!=null)return "关闭";
+				if(creative_mode)return "所有物品";
+				if(World.cur.getMode() instanceof game.world.PvPMode)return "商店";
+				return "合成";
+			}
 			protected BmpRes getBmp(){return dialog==null?work_btn:cancel_btn;}
 			protected void onPress(){
 				onKey('Z');
 			}
 		});
 		ui.addChild(new UI_Button(-3,0){
+			protected String getText(){
+				return pickup_state==0?"捡起物品:自动":pickup_state==1?"捡起物品:当前":"捡起物品:关闭";
+			}
 			protected BmpRes getBmp(){return pick_btn[pickup_state];}
 			protected void onPress(){
 				onKey('X');
 			}
 		});
 		ui.addChild(new UI_Button(-3,1){
-			boolean pressed=false;
+			protected String getText(){
+				return "发言";
+			}
 			protected BmpRes getBmp(){return Item.talk_btn;}
 			@Override
 			protected void onPress() {
-				pressed=true;
-			}
-			@Override
-			protected void onDraw(Canvas cv){
-				if(pressed){
-					pressed=false;
-					cv.sendText();
-				}
-				super.onDraw(cv);
+				sendText((s)->{
+					s=name+": "+s;
+					for(Player p:World.cur.getPlayers()){
+						p.addText(s);
+					}
+				});
 			}
 		});
 		ui.addChild(new UI_Button(-3,6){
+			protected String getText(){
+				return "丢弃";
+			}
 			long t0;
 			protected BmpRes getBmp(){return throw_btn;}
 			protected void onPress(){
@@ -214,6 +276,9 @@ public class Player extends Human{
 			}
 		});
 		ui.addChild(new UI_Button(-3,5){
+			protected String getText(){
+				return "使用";
+			}
 			protected BmpRes getBmp(){
 				Agent a=getControlledAgent();
 				if(a!=Player.this&&dialog==null)a=Player.this;
@@ -228,13 +293,32 @@ public class Player extends Human{
 			}
 		});
 		ui.addChild(new UI_Button(-3,4){
+			protected String getText(){
+				return batch_op?"物品移动:全部":"物品移动:单个";
+			}
 			protected BmpRes getBmp(){return batch_btn[batch_op?1:0];}
 			protected void onPress(){onKey('C');}
 		});
 		ui.addChild(new UI_Button(-3,3){
+			protected String getText(){
+				return suspend_mode?"悬浮:开":"悬浮:关";
+			}
 			protected BmpRes getBmp(){return suspend_btn[suspend_mode?1:0];}
 			public boolean exist(){return creative_mode;}
 			protected void onPress(){onKey('V');}
+		});
+		ui.addChild(new UI_Button(-3,2){
+			protected String getText(){
+				return "查看";
+			}
+			protected BmpRes getBmp(){return Item.use_btn;}
+			protected void onPress(){
+				SingleItem si=getCarriedItem();
+				Item it=si.get();
+				if(it==null)it=armor.get();
+				if(it==null)it=shoes.get();
+				if(it!=null)it.showDetail(Player.this);
+			}
 		});
 		info=new UI_Info(this);
 		action=new Action(1,1);
@@ -273,13 +357,19 @@ public class Player extends Human{
 	}
 	public void drawLeftUI(Canvas cv){
 		info.draw(cv);
+		if(send_text_flag){
+			cv.sendText();
+			send_text_flag=false;
+		}
 	}
 	public void setCursorState(boolean on,float tx,float ty,long press_time){
 		action.on=on;
 		action.tx=tx;
 		action.ty=ty;
 		Item cur=getCarriedItem().get();
-		if(cur!=null)cur.setCursorState(this,on,x+tx,y+ty,press_time);
+		if(cur!=null){
+			cur.setCursorState(this,on,x+tx,y+ty,press_time);
+		}
 		if(on&&press_time>12)setDes(x+tx,y+ty);
 		else cancelDes();
 	}
@@ -402,6 +492,13 @@ public class Player extends Human{
 	
 	public int respawn_time=0;
 	
+	public int maxAir(){
+		Armor ar=armor.get();
+		int v=World.cur.setting.player_max_air;
+		if(ar!=null)v*=ar.maxAir();
+		return v;
+	}
+	
 	public void update(){
 		UI.pl=this;
 		super.update();
@@ -424,8 +521,8 @@ public class Player extends Human{
 		if(hp>0&&chkEnt()){
 			Block b=World.cur.get(x,y+height()-0.1).rootBlock();
 			double c=0.9-b.transparency();
-			if(b.isSolid()||b instanceof LiquidType)c=min(c,-0.4);
-			air_rate=max(0,min(100,air_rate+rf2i(c*0.15)));
+			if(b.isSolid()||b instanceof LiquidType||b instanceof VoidBlock)c=min(c,-0.4);
+			air_rate=max(0,min(maxAir(),air_rate+rf2i(c*0.15)));
 			if(air_rate<20){
 				loseHp((20-air_rate)*0.05,SourceTool.NO_AIR);
 			}
@@ -442,26 +539,13 @@ public class Player extends Human{
 				last_hp+=maxHp()-hp;
 				hp=maxHp();
 			}
-			xp=min(xp+0.5,maxXp());
-		}
-		if(respawn_time>0)--respawn_time;
-		if(hp<=0&&respawn_time<=0){
-			stopCraft();
-			closeDialog();
-			dead_x=x;dead_y=y;
-			respawn_time=150;
-			xdir=ydir=0;
-			hp=maxHp();
 			xp=maxXp();
-			air_rate=100;
-			onGenFragment();
-			World.cur.getMode().onPlayerDead(this);
-			xv=yv=0;f=1;
-			
-			new SetRelPos(this,null,rs_x,rs_y);
-			resetUI();
-			World.cur.getMode().onPlayerRespawn(this);
 		}
+		if(respawn_time>0){
+			--respawn_time;
+			hp=maxHp();
+		}
+		dead=false;
 	}
 	
 	public void ai(){
@@ -484,7 +568,28 @@ public class Player extends Human{
 
 	@Override
 	public void onKilled(Source src){
-		if(!creative_mode)super.onKilled(src);
+		if(!creative_mode&&respawn_time<=0){
+			super.onKilled(src);
+			
+			stopCraft();
+			closeDialog();
+			dead_x=x;dead_y=y;
+			respawn_time=150;
+			xdir=ydir=0;
+			hp=maxHp();
+			xp=maxXp();
+			air_rate=100;
+			onGenFragment();
+			World.cur.getMode().onPlayerDead(this);
+			xv0=yv0=0;
+			xv=yv=0;f=1;
+			atker=null;
+			atked_sum=0;
+			
+			new SetRelPos(this,null,rs_x,rs_y);
+			resetUI();
+			World.cur.getMode().onPlayerRespawn(this);
+		}
 	}
 
 	/*@Override
@@ -513,7 +618,8 @@ public class Player extends Human{
 		Item item=items.getSelected().get();
 		if(item instanceof AgentRef){
 			AgentRef ref=(AgentRef)item;
-			if(ref.agent!=null)return ref.agent;
+			Agent agent=World.cur.getAgentRef(ref.agentref);
+			if(agent!=null)return agent;
 		}
 		return this;
 	}

@@ -12,6 +12,7 @@ import game.world.World;
 public abstract class Warhead extends Item implements BallProvider{
 	private static final long serialVersionUID=1844677L;
 	public int maxAmount(){return 16;}
+	public double launchValue(){return 500;}
 	public double hardness(){return game.entity.NormalAttacker.IRON;}
 	@Override
 	public void onLaunchAtPos(game.entity.Agent a,int dir,double x,double y,double slope,double mv2){
@@ -22,7 +23,7 @@ public abstract class Warhead extends Item implements BallProvider{
 		explode(pos.x,pos.y,pos.xv,pos.yv,src,null);
 	}
 	public void explode(double x,double y,double xv,double yv,Source src,Agent a){
-		game.entity.RPG e=((game.entity.RPG)getRPG().initPos(x,y,xv,yv,SourceTool.make(src,"引爆的")));
+		game.entity.RPG e=((game.entity.RPG)getRPG().initPos(x,y,xv,yv,SourceTool.carry(src)));
 		e.is_warhead=true;
 		if(!(this instanceof Warhead_Spark || this instanceof Warhead_WideRangeSpark))e.fuel=0;
 		else e.fuel=e.fuel*3/4;

@@ -10,8 +10,14 @@ public abstract class UI_Button extends UI{
 	protected abstract BmpRes getBmp();
 	protected abstract void onPress();
 	protected void onRelease(){}
+	protected String getText(){return null;}
 	protected void onDraw(Canvas cv){
 		getBmp().drawInRect(cv,0.1f,0.1f,0.9f,0.9f);
+		String s=getText();
+		if(s!=null){
+			float sz=game.GlobalSetting.getGameSetting().text_size;
+			cv.drawText(s,0.85f,0.85f,Math.min(sz,0.7f),1);
+		}
 	}
 	@Override
 	protected final boolean onTouch(float tx,float ty,int tp){

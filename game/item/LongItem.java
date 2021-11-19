@@ -27,8 +27,8 @@ public class LongItem extends Item{
 	}
 	public double hardness(){return max(item1.hardness(),item2.hardness());}
 	@Override
-	public double getPrice(StatResult result){
-		return result.getPrice0(item1)+result.getPrice0(item2);
+	public double getPrice(StatResult result,boolean is_max){
+		return item1.getPrice(result,is_max)+item2.getPrice(result,is_max);
 	}
 	@Override
 	public boolean onDragTo(SingleItem src,SingleItem dst,boolean batch){

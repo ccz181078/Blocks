@@ -13,8 +13,12 @@ public class AirBottle extends Item{
 
 	public void onUse(Human a){
 		if(!(a instanceof Player))return;
+		if(!a.hasEnergy(10))return;
+		a.loseEnergy(10);
+		Human.RecoverItem ri=a.new RecoverItem(this);
 		Player pl=(Player)a;
-		pl.air_rate=100;
+		pl.air_rate+=100;
+		ri.end();
 	}
 	public BmpRes getUseBmp(){
 		return eat_btn;

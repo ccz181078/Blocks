@@ -5,7 +5,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static util.MathUtil.*;
-import static game.world.World.World_Height;
 import game.block.*;
 import java.util.*;
 import java.io.*;
@@ -24,11 +23,11 @@ class FloatingWorldGenerator extends WorldGenerator{
 	
 	@Override
 	Block[] nxt(){
-		Block[] b=new Block[World_Height];
+		Block[] b=new Block[World.cur.World_Height];
 		int y=0;
 		for(;y<bedrock_y;++y)b[y]=_BedRockBlock;
 		for(;y<lava_y;++y)b[y]=_LavaBlock;
-		for(;y<World_Height;++y)b[y]=_AirBlock;
+		for(;y<World.cur.World_Height;++y)b[y]=_AirBlock;
 		
 		--nxt_plant;
 		if(nxt_plant<0){
@@ -83,7 +82,7 @@ class FloatingWorldGenerator extends WorldGenerator{
 			if(rnd()<0.007)sgs.add(new GoldOreGen(this));
 			if(rnd()<0.003)sgs.add(new DiamondOreGen(this));			
 		}
-		for(y=0;y<World_Height;++y)if(b[y]==null)debug.Log.i(y+":null:"+b[y]);
+		for(y=0;y<World.cur.World_Height;++y)if(b[y]==null)debug.Log.i(y+":null:"+b[y]);
 		return b;
 	}
 	class IslandGen implements Serializable{

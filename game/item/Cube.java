@@ -11,4 +11,5 @@ public class Cube extends LaunchableItem{
 	protected Entity toEnt(){
 		return new game.entity.DarkCube();
 	}
+	public double launchValue(){return 2000;}
 };

@@ -6,13 +6,15 @@ import graphics.Canvas;
 import game.world.World;
 import game.block.Block;
 import util.BmpRes;
+import game.item.Armor;
+import game.item.GuidedBulletManager;
 
 public class GuidedBullet extends Bullet{
 	private static final long serialVersionUID=1844677L;
-	public double width(){return 0.2;}
-	public double height(){return 0.2;}
+	public double width(){return hp<120?0.1:0.2;}
+	public double height(){return hp<120?0.1:0.2;}
 	public double mass(){return 0.15;}
-	public boolean chkRigidBody(){return false;}
+	public boolean chkRigidBody(){return bullet.chkBlock();}
 	public boolean rotByVelDir(){return true;}
 	boolean exploded=false;
 	
@@ -28,14 +30,41 @@ public class GuidedBullet extends Bullet{
 		if(target==null)target=w;
 		else if(distL2(w)<distL2(target))target=w;
 	}
+	protected final boolean checkRecycle(Entity ent){
+		if(!(ent instanceof Human))return false;
+		if(ent!=source.getSrc())return false;
+		Human h=(Human)ent;
+		Armor ar=h.armor.get();
+		if(ar instanceof GuidedBulletManager){
+			if(exploded||hp>120)return true;
+			exploded=true;
+			kill();
+			bullet.drop(h.x,h.y);
+			return true;
+		}
+		return false;
+	}
 	@Override
 	void touchEnt(Entity ent){
 		if(source==ent.source&&(ent instanceof GuidedBullet))return;
+		if(checkRecycle(ent))return;
 		explode();
 	}
 	double near_cnt=1;
 	public void update(){
 		super.update();
+		boolean go_back=false;
+		if(hp<120){
+			Agent a=source.getSrc();
+			if(a instanceof Human){
+				Human h=(Human)a;
+				Armor ar=h.armor.get();
+				if(ar instanceof GuidedBulletManager){
+					target=a;
+					go_back=true;
+				}
+			}
+		}
 		fc+=0.02/mass();
 		game.world.NearbyInfo ni=World.cur.getNearby(x,y,4,4,false,true,true);
 		double xvs=xv,yvs=yv,s=1;
@@ -45,14 +74,18 @@ public class GuidedBullet extends Bullet{
 			double xd=x-e.x,yd=y-e.y,d=1/(hypot(xd,yd)+1e-2);
 			if(d<1/4.)continue;
 			if(e instanceof GuidedBullet){
-				xvs+=e.xv;
-				yvs+=e.yv;
-				s+=1;
-				double c=d*d*(d*(1.5+(near_cnt-1)*0.15)-1);
-				xds+=xd*c;
-				yds+=yd*c;
-				Agent tg=((GuidedBullet)e).target;
-				if(tg!=null)updateTarget(tg);
+				if(!go_back){
+					xvs+=e.xv;
+					yvs+=e.yv;
+					s+=1;
+					double c=d*d*(d*(1.5+(near_cnt-1)*0.15)-1);
+					xds+=xd*c;
+					yds+=yd*c;
+					Agent tg=((GuidedBullet)e).target;
+					if(tg!=null){
+						updateTarget(tg);
+					}
+				}
 			}else{
 				double c=d*d;
 				xds+=xd*c;
@@ -69,6 +102,13 @@ public class GuidedBullet extends Bullet{
 				fc+=0.03/mass();
 			}
 		}
+		else{
+			if(x<World.cur.getMinX())xds+=1;
+			if(x>World.cur.getMaxX())xds-=1;
+			if(y<World.cur.getMinY())yds+=1;
+			if(y>World.cur.getMaxY())yds-=1;
+		}
+		if(!go_back)
 		for(Agent a:ni.agents){
 			Agent b=a;
 			if(a instanceof Airship_Flank){
@@ -78,10 +118,17 @@ public class GuidedBullet extends Bullet{
 			if(b==source.getSrc())continue;
 			updateTarget(a);
 		}
+		if(!go_back&&target==source.getSrc()){
+			target=null;
+		}
 		if(target!=null){
 			double xd=x-target.x,yd=y-target.y,d=1/(hypot(xd,yd)+1e-2),c=-d*4;
 			xds+=xd*c;
 			yds+=yd*c;
+			if(!go_back){
+				xds+=yd*c*c*0.1;
+				yds-=xd*c*c*0.1;
+			}
 		}
 		xds+=(xvs-xv*s);
 		yds+=(yvs-yv*s);

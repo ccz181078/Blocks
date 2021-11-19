@@ -47,12 +47,17 @@ public class PvPMode extends GameMode{
 	void update(Chunk chunk){
 		if(World.cur.time>time){
 			time=World.cur.time;
+			int online_cnt=0;
+			for(Player pl:World.cur.getPlayers()){
+				if(pl.online)++online_cnt;
+			}
+			if(online_cnt>0)
 			for(Player pl:World.cur.getPlayers()){
 				if(pl.online)
-				if(rnd()<0.005){
+				if(rnd()<0.005/online_cnt){
 					double rx=World.cur.getRelX(pl.x);
 					if(rx>0&&rx<1){
-						new GoldParticle().drop(pl.x+rnd_gaussion(),127.5);
+						new GoldParticle().drop(pl.x+rnd_gaussion(),rnd(pl.y-pl.height(),World.cur.getMaxY()+1));
 					}
 				}
 			}
@@ -62,7 +67,7 @@ public class PvPMode extends GameMode{
 	@Override
 	void initPlayer(Player player){
 		super.initPlayer(player);
-		player.money=99;
+		player.money=0;
 	}
 	public void onPlayerDead(Player w){
 		w.dropArmor();
@@ -72,9 +77,9 @@ public class PvPMode extends GameMode{
 		Item i1=new GoldParticle();
 		Item i2=new Gold();
 		Item i3=new GoldBlock();
-		double p1=i1.getPrice(getStat());
-		double p2=i2.getPrice(getStat());
-		double p3=i3.getPrice(getStat());
+		double p1=i1.getPrice(getStat(),false);
+		double p2=i2.getPrice(getStat(),false);
+		double p3=i3.getPrice(getStat(),false);
 		int n3=Math.max(0,Math.min(99,(int)(x/p3)));
 		x-=p3*n3;
 		int n2=Math.max(0,Math.min(99,(int)(x/p2)));
@@ -85,12 +90,13 @@ public class PvPMode extends GameMode{
 		if(n1>0)i1.drop(w.x,w.y,n1);
 		if(n2>0)i2.drop(w.x,w.y,n2);
 		if(n3>0)i3.drop(w.x,w.y,n3);
+		if(w.money<0){
+			w.forceSell(getStat());
+		}
 	}
 	public void onZombieDead(Zombie w){}
 	public void onPlayerRespawn(Player player){
 		super.onPlayerRespawn(player);
-		int x=rndi(-64,64);
-		int y=World.cur.getGroundY(x)+1;
-		new SetRelPos(player,null,x+0.5,y+1);
+		randomRespawn(player);
 	}
 }

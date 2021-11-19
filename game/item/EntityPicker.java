@@ -14,9 +14,10 @@ private static final long serialVersionUID=1844677L;
 	public double toolVal(){return 0;}
 	public void onDesBlock(Block b){}
 	public int maxDamage(){return 2000;}
-	Agent dst=null;
+	Entity dst=null;
 	long last_pick_time;
 	int picking_time=0;
+	public boolean disableRecover(){return true;}
 	public void drawTip(graphics.Canvas cv,Player pl){
 		if(dst!=null){
 			double c=picking_time/(pl.distLinf(dst)*30+60.);
@@ -36,7 +37,7 @@ private static final long serialVersionUID=1844677L;
 	@Override
 	public boolean onLongPress(Agent w,double tx,double ty){
 		if(abs(tx-w.x)>4||abs(ty-w.y)>4)return false;
-		for(Agent a:World.cur.getNearby(tx,ty,0.1,0.1,false,false,true).agents){
+		for(Entity a:World.cur.getNearbyEnts(tx,ty,0.1,0.1)){
 			if(a.pickable()){
 				if(last_pick_time+1<World.cur.time||dst!=a){
 					picking_time=0;

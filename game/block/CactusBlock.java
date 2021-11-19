@@ -1,12 +1,12 @@
 package game.block;
 
 import static java.lang.Math.*;
+import static util.MathUtil.*;
 import util.BmpRes;
 import game.world.World;
 import game.entity.*;
 
 public class CactusBlock extends PlantType{
-private static final long serialVersionUID=1844677L;
 	static BmpRes bmp=new BmpRes("Block/CactusBlock");
 	public BmpRes getBmp(){return bmp;}
 	int maxDamage(){return 30;}
@@ -39,6 +39,7 @@ private static final long serialVersionUID=1844677L;
 		dirt_v=max(0,dirt_v-0.01f);
 		light_v=max(0,light_v-0.1f);
 		repair(0.3,0.3);
+		if((light_v==0||dirt_v==0)&&rnd()<0.1)des(x,y,1);
 		Class tp=d.rootBlock().getClass();
 		if(tp==CactusBlock.class)spread((PlantType)d,0.2f);
 		else if(tp==SandBlock.class&&light_v>2){
@@ -49,6 +50,12 @@ private static final long serialVersionUID=1844677L;
 			CactusBlock w=new CactusBlock();
 			spread(w,0.2f);
 			World.cur.place(x,y+1,w);
+		}
+		if(true){
+			Block d1=World.cur.get(x,y-2);
+			if(d1.rootBlock() instanceof StoneBlock){
+				d1.onLight(x,y,1);
+			}
 		}
 		return false;
 	}
